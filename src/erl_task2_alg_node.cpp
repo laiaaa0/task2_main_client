@@ -33,6 +33,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
     std::string label;
     float acc;
     std::string error_msg;
+    this->classifier_module.set_classification_mode("face");
     bool result = this->classifier_module.classify_current_person(label,acc,error_msg);
     if (!result){
         ROS_INFO("%s\n",error_msg.c_str());
