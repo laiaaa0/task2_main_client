@@ -33,14 +33,13 @@ void ErlTask2AlgNode::mainNodeThread(void)
     std::string label;
     float acc;
     std::string error_msg;
-    this->classifier_module.set_classification_mode("face");
     bool result = this->classifier_module.classify_current_person(label,acc,error_msg);
     if (!result){
         ROS_INFO("%s\n",error_msg.c_str());
         if (error_msg=="fail"){
             //Do something
         } else if (error_msg=="pending"){
-        
+            
         } else {
         
         }
@@ -50,12 +49,14 @@ void ErlTask2AlgNode::mainNodeThread(void)
     else {
         ROS_INFO ("Suceessful classifier module -> classify_current_person function call");
         if (error_msg==""){
-        ROS_INFO("Image classified successfuly");
-        ROS_INFO("%s\n",label.c_str());
-        ROS_INFO("%f\n",acc);
+            ROS_INFO("Image classified successfuly");
+            ROS_INFO("%s\n",label.c_str());
+            ROS_INFO("%f\n",acc);
         }
         else {
-        ROS_INFO("%s\n",error_msg.c_str());
+            ROS_INFO("%s\n",error_msg.c_str());
+            ROS_INFO("%s\n",label.c_str());
+            ROS_INFO("%f\n",acc);
         }
     }
    }
