@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="iri_erl_task2_client" type="iri_erl_task2_client" name="iri_erl_task2_client" output="screen">
+        <remap from ="iri_erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
+	<remap from="/erl_task2_alg_node/tts/" to="/tts/"/>
+    </node>
+</launch>

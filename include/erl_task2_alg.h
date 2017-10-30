@@ -25,7 +25,7 @@
 #ifndef _erl_task2_alg_h_
 #define _erl_task2_alg_h_
 
-#include <iri_erl_task2/ErlTask2Config.h>
+#include <iri_erl_task2_client/ErlTask2Config.h>
 
 //include erl_task2_alg main library
 

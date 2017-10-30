@@ -2,7 +2,9 @@
 
 ErlTask2AlgNode::ErlTask2AlgNode(void) :
   algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>(),
-    classifier_module("task_2_client")
+    classifier_module("classifier","task_2_client"),
+    tts_module("tts","task_2_client"),
+    nav_module("nav","task_2_client")
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
@@ -61,15 +63,15 @@ bool ErlTask2AlgNode::action_greet(){
       sentence = "Sorry, I don't know you. I cannot open the door";
       break;
   }
-    //tts.say(sentence,"en",0)
+    tts_module.say(sentence);
     sent = true;
   }
-  //if (tts.is_finished()){
+  if (tts_module.is_finished()){
     sent  = false;
     return true;
 
-  //}
-  //else return false;
+  }
+  return false;
 }
 bool ErlTask2AlgNode::action_navigate(){
   std::string POI;
@@ -89,12 +91,12 @@ bool ErlTask2AlgNode::action_navigate(){
         POI = "";
         break;
     }
-    //navMod.go_to_poi(POI);
+    nav_module.go_to_poi(POI);
 
   }
-  //if (navMod.is_finished())
-  return true;
-  //else return false;
+  if (nav_module.is_finished())
+  	return true;
+  else return false;
 
 
 }
@@ -117,12 +119,12 @@ bool ErlTask2AlgNode::action_algorithm(){
           break;
         case act_opendoor:
           ROS_INFO ("Requesting to open the door");
-          /*tts.say("Could you please open the door?", "en",0));
-          if (tts.is_finished){*/
-            this -> t2_a_s = act_navigate;/*
+          tts_module.say("Could you please open the door?");
+          if (tts_module.is_finished()){
+            this -> t2_a_s = act_navigate;
           }
-          */
-          //this->t2_a_s = act_opendoor;
+          
+          this->t2_a_s = act_opendoor;
           break;
         case act_navigate:
           if (this->action_navigate()){

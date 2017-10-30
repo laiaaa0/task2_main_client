@@ -29,6 +29,9 @@
 #include "erl_task2_alg.h"
 
 #include <erl_classification_modules/person_classification_module.h>
+#include <tiago_modules/tts_module.h>
+#include <tiago_modules/nav_module.h>
+
 // [publisher subscriber headers]
 
 // [service client headers]
@@ -67,6 +70,8 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     */
     Config config_;
     CERLClassificationModule classifier_module;
+    CTTSModule tts_module;
+    CNavModule nav_module;
     bool hasCalled;
     Person current_person;
     int visitors_counter;
