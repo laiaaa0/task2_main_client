@@ -3,8 +3,8 @@
 ErlTask2AlgNode::ErlTask2AlgNode(void) :
   algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>(),
     classifier_module("classifier","task_2_client"),
-    tts_module("tts","task_2_client"),
-    nav_module("nav","task_2_client")
+    tts_module("tts_module","task_2_client"),
+    nav_module("nav_module","task_2_client")
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
@@ -191,7 +191,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
     case task2_Finish_act:
         this->visitors_counter ++;
-        if (this->visitors_counter >= 4){
+        if (this->visitors_counter >= 1){
           this->t2_m_s = task2_End;
         }
         else {

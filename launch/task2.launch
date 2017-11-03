@@ -2,6 +2,26 @@
 
     <node pkg="iri_erl_task2_client" type="iri_erl_task2_client" name="iri_erl_task2_client" output="screen">
         <remap from ="iri_erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
-	<remap from="/erl_task2_alg_node/tts/" to="/tts/"/>
+	<remap from="~/task_2_client/tts_module/tts" to="/tts"/> 
+   <remap from="~/nav_module/move_waypoint"
+             to="/pal_waypoint/navigate"/>
+    <remap from="~/nav_module/odom"
+             to="/mobile_base_controller/odom"/>
+    <remap from="~/nav_module/clear_costmaps"
+             to="/move_base/clear_costmaps"/>
+    <remap from="~/nav_module/change_map"
+             to="/pal_map_manager/change_map"/>
+    <remap from="~/nav_module/set_op_mode"
+             to="/pal_navigation_sm"/>
+    <remap from="~/nav_module/move_base_reconf"
+             to="/move_base/PalLocalPlanner/set_parameters"/>
+
+
+
+
+
+
+
+
     </node>
 </launch>
