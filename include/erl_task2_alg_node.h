@@ -41,7 +41,7 @@
 
 typedef enum {task2_Start,task2_Wait, task2_Classify, task2_Act,task2_Finish_act, task2_End} task2_main_states;
 typedef enum {act_greet, act_gotodoor, act_opendoor, act_navigate, act_actionroom, act_wait, act_returndoor} task2_act_states;
-typedef enum {Deliman, Postman, Kimble, Annie, Unknown} Person;
+typedef enum {Deliman, Postman, Kimble, Unknown, Annie} Person;
 
 /**
  * \brief IRI ROS Specific Algorithm Class
@@ -69,6 +69,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     * Is updated everytime function config_update() is called.
     */
     Config config_;
+    CDevicesManagerModule devices_module;
     CERLClassificationModule classifier_module;
     CTTSModule tts_module;
     CNavModule nav_module;
@@ -77,6 +78,10 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     int visitors_counter;
     task2_main_states t2_m_s;
     task2_act_states t2_a_s;
+    std::string kitchen_name;
+    std::string entrance_name;
+    std::string bedroom_name;
+    std::vector<bool>seen_people(4,false);
   public:
    /**
     * \brief Constructor
@@ -96,8 +101,12 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
 
     bool action_algorithm();
     bool action_greet();
+    bool action_opendoor();
     bool action_navigate();
     bool action_room();
+    bool action_say_sentence(const std::string & sentence);
+    bool action_wait_leave();
+
     bool wait_result();
     bool labelToPerson (const std::string & label);
 

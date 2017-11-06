@@ -13,6 +13,7 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     this->t2_a_s = act_greet;
     this->current_person = Unknown;
     this->visitors_counter = 0;
+
   // [init publishers]
 
   // [init subscribers]
@@ -45,10 +46,11 @@ bool ErlTask2AlgNode::labelToPerson (const std::string & label){
   return true;
 }
 
+
 bool ErlTask2AlgNode::action_greet(){
-  static bool sent = false;
+  static bool is_sentence_sent = false;
   std::string sentence;
-  if (!sent){
+  if (!is_sentence_sent){
   switch (this->current_person){
     case Deliman:
       sentence = "Hello, I am coming to get the breakfast";
@@ -64,10 +66,10 @@ bool ErlTask2AlgNode::action_greet(){
       break;
   }
     tts_module.say(sentence);
-    sent = true;
+    is_sentence_sent = true;
   }
   if (tts_module.is_finished()){
-    sent  = false;
+    is_sentence_sent  = false;
     return true;
 
   }
@@ -79,13 +81,13 @@ bool ErlTask2AlgNode::action_navigate(){
   if (!is_poi_sent){
     switch(this->current_person){
       case Deliman:
-        POI = "Kitchen";
+        POI = this->kitchen_name;
         break;
       case Postman:
-        POI = "Entrance";
+        POI = this->entrance_name;
         break;
       case Kimble:
-        POI = "Bedroom";
+        POI = this->bedroom_name;
         break;
       default:
         POI = "";
@@ -100,6 +102,40 @@ bool ErlTask2AlgNode::action_navigate(){
 
 
 }
+bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
+  static bool is_sentence_sent = false;
+  if (!is_sentence_sent){
+    tts_module.say(sentence);
+    is_sentence_sent = true;
+  }
+  if (tts_module.is_finished()){
+    is_sentence_sent  = false;
+    return true;
+
+  }
+  return false;
+
+
+}
+bool ErlTask2AlgNode::action_wait_leave(){
+  return true;
+}
+bool ErlTask2AlgNode::action_room(){
+    switch(this->current_person){
+      case Deliman:
+        return (this->action_say_sentence("Please deliver the breakfast on the kitchen table"));
+        break;
+      case Postman:
+        return (this->action_say_sentence("Please deliver the mail in the table on the hall"));
+        break;
+      case Kimble:
+        return (this->action_wait_leave());
+        break;
+      default:
+        return true;
+        break;
+}
+
 bool ErlTask2AlgNode::action_algorithm(){
   bool return_value = false;
   switch (this->t2_a_s){
@@ -119,12 +155,10 @@ bool ErlTask2AlgNode::action_algorithm(){
           break;
         case act_opendoor:
           ROS_INFO ("Requesting to open the door");
-          tts_module.say("Could you please open the door?");
-          if (tts_module.is_finished()){
+          if (this->action_say_sentence("Could you please open the door?")){
             this -> t2_a_s = act_navigate;
           }
-          
-          this->t2_a_s = act_opendoor;
+          else this->t2_a_s = act_opendoor;
           break;
         case act_navigate:
           if (this->action_navigate()){
@@ -132,7 +166,9 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           break;
         case act_actionroom:
-          this->t2_a_s = act_wait;
+          if (this->action_room()){
+            this->t2_a_s = act_wait;
+          }
           break;
         case act_wait:
           this->t2_a_s = act_returndoor;
@@ -161,12 +197,12 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
     case task2_Wait:
       // Wait from doorbell
-      /*if (CDevicesManagerModule::listen_bell()) {*/
-            this->t2_m_s = task2_Classify; /*
+      if (devices_module.listen_bell()) {
+            this->t2_m_s = task2_Classify;
       } else {
             this-> t2_m_s = task2_Wait;
 
-      }*/
+      }
 
 
       break;
@@ -178,15 +214,18 @@ void ErlTask2AlgNode::mainNodeThread(void)
         ROS_INFO("Label : %s\n",label.c_str());
         ROS_INFO("Accuracy : %f\n",acc);
         if (labelToPerson(label)){
+          if (seen_people[this->current_person]){
+            ROS_INFO("I have already seen "+this->current_person.c_str());
+
+          }
+          seen_people[this->current_person] = true;
           this->t2_m_s = task2_Act;
         }
       }
       break;
     case task2_Act:
-
       if (this->action_algorithm()){
         this->t2_m_s = task2_Finish_act;
-
       }
       break;
     case task2_Finish_act:
@@ -221,6 +260,9 @@ void ErlTask2AlgNode::mainNodeThread(void)
 void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
 {
   this->alg_.lock();
+  this->kitchen_name = config.kitchen_name;
+  this->entrance_name = config.entrance_name;
+  this->bedroom_name = config.bedroom_name;
   this->config_=config;
   this->alg_.unlock();
 }
