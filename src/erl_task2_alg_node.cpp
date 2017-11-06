@@ -14,6 +14,7 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     this->current_person = Unknown;
     this->visitors_counter = 0;
 
+    for (size_t i = 0; i<4; ++i) seen_people.push_back(false);
   // [init publishers]
 
   // [init subscribers]
@@ -134,6 +135,7 @@ bool ErlTask2AlgNode::action_room(){
       default:
         return true;
         break;
+ }
 }
 
 bool ErlTask2AlgNode::action_algorithm(){
@@ -197,12 +199,12 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
     case task2_Wait:
       // Wait from doorbell
-      if (devices_module.listen_bell()) {
+      //if (devices_module.listen_bell()) {
             this->t2_m_s = task2_Classify;
-      } else {
-            this-> t2_m_s = task2_Wait;
+      //} else {
+        //    this-> t2_m_s = task2_Wait;
 
-      }
+      //}
 
 
       break;
@@ -215,7 +217,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         ROS_INFO("Accuracy : %f\n",acc);
         if (labelToPerson(label)){
           if (seen_people[this->current_person]){
-            ROS_INFO("I have already seen "+this->current_person.c_str());
+            ROS_INFO("I have already seen %s\n",label.c_str());
 
           }
           seen_people[this->current_person] = true;

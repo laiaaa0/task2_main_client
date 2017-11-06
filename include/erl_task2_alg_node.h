@@ -69,7 +69,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     * Is updated everytime function config_update() is called.
     */
     Config config_;
-    CDevicesManagerModule devices_module;
+    //CDevicesManagerModule devices_module;
     CERLClassificationModule classifier_module;
     CTTSModule tts_module;
     CNavModule nav_module;
@@ -81,7 +81,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     std::string kitchen_name;
     std::string entrance_name;
     std::string bedroom_name;
-    std::vector<bool>seen_people(4,false);
+    std::vector<bool>seen_people;
   public:
    /**
     * \brief Constructor
