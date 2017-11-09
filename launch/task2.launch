@@ -1,8 +1,8 @@
-<launch>
+  <launch>
 
     <node pkg="iri_erl_task2_client" type="iri_erl_task2_client" name="iri_erl_task2_client" output="screen">
         <remap from ="iri_erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
-	<remap from="~/task_2_client/tts_module/tts" to="/tts"/> 
+	<remap from="~/task_2_client/tts_module/tts" to="/tts"/>
    <remap from="~/task_2_client/nav_module/move_waypoint"
              to="/pal_waypoint/navigate"/>
     <remap from="~/task_2_client/nav_module/odom"
@@ -15,12 +15,6 @@
              to="/pal_navigation_sm"/>
     <remap from="~/task_2_client/nav_module/move_base_reconf"
              to="/move_base/PalLocalPlanner/set_parameters"/>
-
-
-
-
-
-
 
 
     </node>

@@ -74,8 +74,11 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     CTTSModule tts_module;
     CNavModule nav_module;
     bool hasCalled;
+    bool startTask;
+    
     Person current_person;
     int visitors_counter;
+    int visitors_num;
     task2_main_states t2_m_s;
     task2_act_states t2_a_s;
     std::string kitchen_name;

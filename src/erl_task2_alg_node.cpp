@@ -34,16 +34,21 @@ ErlTask2AlgNode::~ErlTask2AlgNode(void)
 bool ErlTask2AlgNode::labelToPerson (const std::string & label){
   if (label=="Unknown"){
     this -> current_person = Unknown;
+    return true;
   } else if (label == "Kimble"){
     this -> current_person = Kimble;
+    return true;
   } else if (label == "Annie"){
     this -> current_person = Annie;
+    return true;
   } else if (label == "Deliman"){
     this -> current_person = Deliman;
+    return true;
   } else if (label == "Postman") {
-      this -> current_person = Postman;
+    this -> current_person = Postman;
+    return true;
   }
-  return true;
+  return false;
 }
 
 
@@ -114,8 +119,6 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
 
   }
   return false;
-
-
 }
 bool ErlTask2AlgNode::action_wait_leave(){
   return true;
@@ -193,11 +196,14 @@ void ErlTask2AlgNode::mainNodeThread(void)
   switch (this->t2_m_s){
     case task2_Start:
       // Wait from call from erl_utils > task_state_controller > start_task_2.
-      this->t2_m_s = task2_Wait;
+      if (this->startTask){
+        this->t2_m_s = task2_Wait;
+      }
       break;
     case task2_Wait:
       // Wait from doorbell
-      if (devices_module.listen_bell()) {
+      //if (devices_module.listen_bell()) {
+      if (this->hasCalled){
             this->t2_m_s = task2_Classify;
       } else {
             this-> t2_m_s = task2_Wait;
@@ -230,7 +236,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
     case task2_Finish_act:
         this->visitors_counter ++;
-        if (this->visitors_counter >= 1){
+        if (this->visitors_counter >= this->visitors_num){
           this->t2_m_s = task2_End;
         }
         else {
@@ -263,6 +269,21 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
   this->kitchen_name = config.kitchen_name;
   this->entrance_name = config.entrance_name;
   this->bedroom_name = config.bedroom_name;
+  this->visitors_num = config.visitors_num;
+  this->startTask = config.start_task;
+  this->hasCalled = config.ring_bell;
+  if (config.ring_bell) config.ring_bell = false;
+  if (config.start_actions_for_person){
+    if (this->labelToPerson(config.person)){
+      this->t2_m_s =  task2_Act;
+      this->t2_a_s = act_greet;
+    }
+    else {
+      ROS_INFO("Person not valid!");
+    }
+    config.start_actions_for_person = false;
+  
+  }
   this->config_=config;
   this->alg_.unlock();
 }
