@@ -208,10 +208,10 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
       if (this->hasCalled){
             this->t2_m_s = task2_Classify;
-      //} else {
-        //    this-> t2_m_s = task2_Wait;
+      } else {
+            this-> t2_m_s = task2_Wait;
 
-      //}
+      }
 
 
       break;
