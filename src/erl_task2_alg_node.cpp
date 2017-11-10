@@ -3,7 +3,7 @@
 ErlTask2AlgNode::ErlTask2AlgNode(void) :
   algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>(),
     classifier_module("classifier"),
-    tts_module("tts_module"),
+    tts("tts_module"),
     nav_module("nav_module")
 {
   //init class attributes if necessary
@@ -72,10 +72,10 @@ bool ErlTask2AlgNode::action_greet(){
       sentence = "Sorry, I don't know you. I cannot open the door";
       break;
   }
-    tts_module.say(sentence);
+    tts.say(sentence);
     is_sentence_sent = true;
   }
-  if (tts_module.is_finished()){
+  if (tts.is_finished()){
     is_sentence_sent  = false;
     return true;
 
@@ -103,13 +103,11 @@ bool ErlTask2AlgNode::action_navigate(){
     nav_module.go_to_poi(POI);
     is_poi_sent = true;
   }
-  else {
-    if (nav_module.is_finished()){
+  if (nav_module.is_finished()){
       is_poi_sent = false;
       return true;
-    }
-    else return false;
   }
+  else return false;
 }
 bool ErlTask2AlgNode::action_gotodoor(){
   std::string POI = this->entrance_name;
@@ -128,11 +126,11 @@ bool ErlTask2AlgNode::action_gotodoor(){
 bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
   static bool is_sentence_sent = false;
   if (!is_sentence_sent){
-    tts_module.say(sentence);
+    tts.say(sentence);
     is_sentence_sent = true;
   }
   else {
-    if (tts_module.is_finished()){
+    if (tts.is_finished()){
       is_sentence_sent  = false;
       return true;
 

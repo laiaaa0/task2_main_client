@@ -3,12 +3,19 @@
     <node pkg="iri_erl_task2_client" 
 	type="iri_erl_task2_client" 
 	name="iri_erl_task2_client" 
-	output="screen">
+	output="screen"
+	ns="/tiago">
         
 	<remap from ="iri_erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
 
 <!-- tts remappings -->
 	<remap from="~/tts_module/tts" to="/tts"/>
+    <param name="~/tts_module/action_max_retries" value="5"/>
+    <param name="~/tts_module/enable_timeout" value="false"/>
+    <param name="~/tts_module/feedback_watchdog_time_s" value="20"/>
+    <param name="~/tts_module/rate_hz" value="10"/>
+    <param name="~/tts_module/timeout_s" value="10"/>
+    <param name="~/tts_module/enabled" value="true"/>
 
 
 <!-- navigation remappings -->

@@ -71,7 +71,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     Config config_;
     //CDevicesManagerModule devices_module;
     CERLClassificationModule classifier_module;
-    CTTSModule tts_module;
+    CTTSModule tts;
     CNavModule nav_module;
     bool hasCalled;
     bool startTask;
@@ -110,6 +110,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool action_room();
     bool action_say_sentence(const std::string & sentence);
     bool action_wait_leave();
+    bool action_gotodoor();
 
     bool wait_result();
     bool labelToPerson (const std::string & label);
