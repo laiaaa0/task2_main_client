@@ -78,7 +78,6 @@ bool ErlTask2AlgNode::action_greet(){
   if (tts.is_finished()){
     is_sentence_sent  = false;
     return true;
-
   }
   return false;
 }
@@ -121,7 +120,6 @@ bool ErlTask2AlgNode::action_gotodoor(){
     is_poi_sent = false;
     return true;
   } else return false;
-
 }
 bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
   static bool is_sentence_sent = false;
@@ -162,7 +160,7 @@ bool ErlTask2AlgNode::action_algorithm(){
   bool return_value = false;
   switch (this->t2_a_s){
         case act_greet:
-          ROS_INFO ("Greeting the visitor");
+          ROS_INFO ("[TASK2]:Greeting the visitor");
           if (this->action_greet()){
             this->t2_a_s = act_gotodoor;
             if (this->current_person == Unknown) {
@@ -172,29 +170,37 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           break;
         case act_gotodoor:
-          ROS_INFO ("Going to open the door");
-          this->t2_a_s = act_opendoor;
+          ROS_INFO ("[TASK2]:Going to open the door");
+          if (this->action_gotodoor()){
+            this->t2_a_s = act_opendoor;
+          }
+          else {
+            this->t2_a_s = action_gotodoor;
+          }
           break;
         case act_opendoor:
-          ROS_INFO ("Requesting to open the door");
+          ROS_INFO ("[TASK2]:Requesting to open the door");
           if (this->action_say_sentence("Could you please open the door?")){
             this -> t2_a_s = act_navigate;
           }
           else this->t2_a_s = act_opendoor;
           break;
         case act_navigate:
+          ROS_INFO ("[TASK2]:Navigating to the room");
           if (this->action_navigate()){
             this->t2_a_s = act_actionroom;
           }
           break;
         case act_actionroom:
+          ROS_INFO ("[TASK2]:Doing the action in the room");
           if (this->action_room()){
             this->t2_a_s = act_wait;
           }
           break;
         case act_wait:
+          ROS_INFO ("[TASK2]:Waiting for 20 seconds in the room");
           if (this->isWaiting){
-            if ((clock()-waitingTime)/CLOCKS_PER_SEC>20){
+            if ((clock()-waitingTime)/CLOCKS_PER_SEC>this->config_.waiting_time){
               this->isWaiting = false;
               this->t2_a_s = act_returndoor;
             }
@@ -205,8 +211,14 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           break;
         case act_returndoor:
-          this->t2_a_s = act_greet;
-          return_value = true;
+          ROS_INFO ("[TASK2]:Going to the door");
+          if (this->action_gotodoor()){
+            this->t2_a_s = act_greet;
+            return_value = true;
+          }
+          else {
+            this->t2_a_s = act_returndoor;
+          }
           break;
 
   }
@@ -246,14 +258,13 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case task2_Classify:
       result = this->classifier_module.classify_current_person(label,acc,error_msg);
       if (result) {
-        ROS_INFO("Suceessful classifier module -> classify_current_person function call");
-        ROS_INFO("Error : %s\n",error_msg.c_str());
-        ROS_INFO("Label : %s\n",label.c_str());
-        ROS_INFO("Accuracy : %f\n",acc);
+        ROS_INFO ("[TASK2]:Successful classifier module -> classify_current_person function call");
+        ROS_INFO ("[TASK2]:Error : %s\n",error_msg.c_str());
+        ROS_INFO ("[TASK2]:Label : %s\n",label.c_str());
+        ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
         if (labelToPerson(label)){
           if (seen_people[this->current_person]){
-            ROS_INFO("I have already seen %s\n",label.c_str());
-
+            ROS_INFO ("[TASK2]:I have already seen %s\n",label.c_str());
           }
           seen_people[this->current_person] = true;
           this->t2_m_s = task2_Act;
@@ -275,7 +286,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         }
       break;
     case task2_End:
-      ROS_INFO ("Task2 client :: Finish!");
+      ROS_INFO ("[TASK2]:Task2 client :: Finish!");
       break;
 
    }
@@ -314,7 +325,7 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
       this->t2_a_s = act_greet;
     }
     else {
-      ROS_INFO("Person not valid!");
+      ROS_INFO ("[TASK2] Person not valid!");
     }
     config.start_actions_for_person = false;
 
