@@ -228,6 +228,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       // Wait from call from erl_utils > task_state_controller > start_task_2.
       if (this->startTask){
         this->t2_m_s = task2_Wait;
+        this->startTask = false;
       }
       break;
     case task2_Wait:
@@ -236,6 +237,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
       if (this->hasCalled){
             this->t2_m_s = task2_Classify;
+            this->hasCalled = false;
       } else {
             this-> t2_m_s = task2_Wait;
 
@@ -301,7 +303,11 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
   this->entrance_name = config.entrance_name;
   this->bedroom_name = config.bedroom_name;
   this->visitors_num = config.visitors_num;
-  this->startTask = config.start_task;
+  if (config.start_task){
+     this->startTask = config.start_task;
+     this->t2_m_s = task2_Start;
+     this->t2_a_s = act_greet;
+  }
   this->hasCalled = config.ring_bell;
   if (config.ring_bell) config.ring_bell = false;
   if (config.start_actions_for_person){
