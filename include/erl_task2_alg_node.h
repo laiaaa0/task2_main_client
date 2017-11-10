@@ -31,7 +31,7 @@
 #include <erl_classification_modules/person_classification_module.h>
 #include <tiago_modules/tts_module.h>
 #include <tiago_modules/nav_module.h>
-
+#include <ctime>
 // [publisher subscriber headers]
 
 // [service client headers]
@@ -75,7 +75,8 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     CNavModule nav_module;
     bool hasCalled;
     bool startTask;
-    
+    bool isWaiting;
+    clock_t waitingTime;
     Person current_person;
     int visitors_counter;
     int visitors_num;

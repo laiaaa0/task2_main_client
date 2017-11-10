@@ -13,6 +13,7 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     this->t2_a_s = act_greet;
     this->current_person = Unknown;
     this->visitors_counter = 0;
+    this->isWaiting = false;
 
     for (size_t i = 0; i<4; ++i) seen_people.push_back(false);
   // [init publishers]
@@ -83,7 +84,7 @@ bool ErlTask2AlgNode::action_greet(){
 }
 bool ErlTask2AlgNode::action_navigate(){
   std::string POI;
-  bool is_poi_sent = false;
+  static bool is_poi_sent = false;
   if (!is_poi_sent){
     switch(this->current_person){
       case Deliman:
@@ -100,12 +101,28 @@ bool ErlTask2AlgNode::action_navigate(){
         break;
     }
     nav_module.go_to_poi(POI);
-
+    is_poi_sent = true;
   }
-  if (nav_module.is_finished())
-  	return true;
-  else return false;
-
+  else {
+    if (nav_module.is_finished()){
+      is_poi_sent = false;
+      return true;
+    }
+    else return false;
+  }
+}
+bool ErlTask2AlgNode::action_gotodoor(){
+  std::string POI = this->entrance_name;
+  static bool is_poi_sent = false;
+  //first execution : send the poi.
+  if (!is_poi_sent){
+    nav_module.go_to_poi(POI);
+    is_poi_sent = true;
+  }
+  if (nav_module.is_finished()){
+    is_poi_sent = false;
+    return true;
+  } else return false;
 
 }
 bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
@@ -114,10 +131,12 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
     tts_module.say(sentence);
     is_sentence_sent = true;
   }
-  if (tts_module.is_finished()){
-    is_sentence_sent  = false;
-    return true;
+  else {
+    if (tts_module.is_finished()){
+      is_sentence_sent  = false;
+      return true;
 
+    }
   }
   return false;
 }
@@ -176,7 +195,16 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           break;
         case act_wait:
-          this->t2_a_s = act_returndoor;
+          if (this->isWaiting){
+            if ((clock()-waitingTime)/CLOCKS_PER_SEC>20){
+              this->isWaiting = false;
+              this->t2_a_s = act_returndoor;
+            }
+          } else {
+            waitingTime = clock();
+            this->isWaiting = true;
+            this->t2_a_s = act_wait;
+          }
           break;
         case act_returndoor:
           this->t2_a_s = act_greet;
