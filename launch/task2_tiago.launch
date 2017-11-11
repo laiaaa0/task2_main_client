@@ -1,12 +1,12 @@
   <launch>
 
-    <node pkg="iri_erl_task2_client" 
-	type="iri_erl_task2_client" 
-	name="iri_erl_task2_client" 
+    <node pkg="task2_client" 
+	type="task2_client" 
+	name="task2_client" 
 	output="screen"
 	ns="/tiago">
         
-	<remap from ="iri_erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
+	<remap from ="person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
 
 <!-- tts remappings -->
 	<remap from="~/tts_module/tts" to="/tts"/>
@@ -38,9 +38,9 @@
   
     </node>
     <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/task2-welcoming_visitors_alg/"/>
-    <node pkg="iri_erl_person_classifier" type="iri_erl_person_classifier" name="iri_erl_person_classifier" output="screen">
-        <remap from ="iri_erl_person_classifier/front_door_camera" to="/xtion/rgb/image_raw"/>
-        <remap from ="iri_erl_person_classifier/front_cam_info" to="/xtion/rgb/cam_info"/>
+    <node pkg="person_classifier" type="person_classifier" name="person_classifier" output="screen">
+        <remap from ="person_classifier/front_door_camera" to="/xtion/rgb/image_raw"/>
+        <remap from ="person_classifier/front_cam_info" to="/xtion/rgb/cam_info"/>
         <param name="base_path" type="string" value="$(arg base_path)" />
 
     </node>

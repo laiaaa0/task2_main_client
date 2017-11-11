@@ -175,7 +175,7 @@ bool ErlTask2AlgNode::action_algorithm(){
             this->t2_a_s = act_opendoor;
           }
           else {
-            this->t2_a_s = action_gotodoor;
+            this->t2_a_s = act_gotodoor;
           }
           break;
         case act_opendoor:

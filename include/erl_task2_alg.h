@@ -25,7 +25,7 @@
 #ifndef _erl_task2_alg_h_
 #define _erl_task2_alg_h_
 
-#include <iri_erl_task2_client/ErlTask2Config.h>
+#include <task2_client/ErlTask2Config.h>
 
 //include erl_task2_alg main library
 
@@ -54,7 +54,7 @@ class ErlTask2Algorithm
     * Define a Config type with the ErlTask2Config. All driver implementations
     * will then use the same variable type Config.
     */
-    typedef iri_erl_task2::ErlTask2Config Config;
+    typedef task2_client::ErlTask2Config Config;
 
    /**
     * \brief config variable
