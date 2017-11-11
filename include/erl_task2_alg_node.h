@@ -70,7 +70,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     */
     Config config_;
     //CDevicesManagerModule devices_module;
-    CERLClassificationModule classifier_module;
+    CPersonClassificationModule classifier_module;
     CTTSModule tts;
     CNavModule nav_module;
     bool hasCalled;

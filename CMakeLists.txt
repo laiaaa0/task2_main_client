@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(iri_erl_task2_client)
+project(task2_client)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED)
 # ******************************************************************** 
 #                 Add catkin additional components here
 # ******************************************************************** 
-find_package(catkin REQUIRED COMPONENTS iri_base_algorithm erl_classification_module tiago_modules)
+find_package(catkin REQUIRED COMPONENTS iri_base_algorithm erl_classification_modules erl_object_classifier erl_person_classifier tiago_modules)
 find_package(iriutils REQUIRED)
     
   
@@ -63,7 +63,7 @@ catkin_package(
 # ******************************************************************** 
 #            Add ROS and IRI ROS run time dependencies
 # ******************************************************************** 
- CATKIN_DEPENDS iri_base_algorithm erl_classification_module tiago_modules
+ CATKIN_DEPENDS iri_base_algorithm erl_classification_modules erl_object_classifier erl_person_classifier tiago_modules
 # ******************************************************************** 
 #      Add system and labrobotica run time dependencies here
 # ******************************************************************** 

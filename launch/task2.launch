@@ -1,48 +1,37 @@
   <launch>
 
-   
-    <node pkg="iri_erl_task2_client"
-        type="iri_erl_task2_client"
-        name="iri_erl_task2_client"
-        output="screen">
-
-        <remap from ="iri_erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
-
-<!-- tts remappings -->
-        <remap from="~/tts_module/tts" to="/tts"/>
-
-
-<!-- navigation remappings -->
-     <remap from="~/nav_module/move_base"
-             to="/move_base"/>
-    <remap from="~/nav_module/move_poi"
-             to="/poi_navigation_server/go_to_poi"/>
-    <remap from="~/nav_module/move_waypoint"
-             to="/pal_waypoint/navigate"/>
-    <remap from="~/nav_module/odom"
-             to="/mobile_base_controller/odom"/>
-    <remap from="~/nav_module/clear_costmaps"
-             to="/move_base/clear_costmaps"/>
-    <remap from="~/nav_module/change_map"
-             to="/pal_map_manager/change_map"/>
-    <remap from="~/nav_module/set_op_mode"
-             to="/pal_navigation_sm"/>
-    <remap from="~/nav_module/move_base_reconf"
-             to="/move_base/PalLocalPlanner/set_parameters"/>
-
-    </node>
     <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/task2-welcoming_visitors_alg/"/>
-    <node pkg="iri_erl_person_classifier" type="iri_erl_person_classifier" name="iri_erl_person_classifier" output="screen">
-        <remap from ="iri_erl_person_classifier/front_door_camera" to="/roah_ipcam/image_raw"/>
-        <remap from ="iri_erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
-
-        <param name="base_path" type="string" value="$(arg base_path)" />
-
+   
+    <node pkg="task2_client" type="task2_client" name="task2_client" output="screen">
+        <remap from ="erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
+	<!-- tts remappings -->
+        <remap from="~/tts_module/tts" to="/tts"/>
+	<!-- navigation remappings -->
+     	<remap from="~/nav_module/move_base"
+                 to="/move_base"/>
+    	<remap from="~/nav_module/move_poi"
+    	         to="/poi_navigation_server/go_to_poi"/>
+    	<remap from="~/nav_module/move_waypoint"
+    	         to="/pal_waypoint/navigate"/>
+    	<remap from="~/nav_module/odom"
+    	         to="/mobile_base_controller/odom"/>
+    	<remap from="~/nav_module/clear_costmaps"
+    	         to="/move_base/clear_costmaps"/>
+    	<remap from="~/nav_module/change_map"
+    	         to="/pal_map_manager/change_map"/>
+    	<remap from="~/nav_module/set_op_mode"
+    	         to="/pal_navigation_sm"/>
+    	<remap from="~/nav_module/move_base_reconf"
+    	         to="/move_base/PalLocalPlanner/set_parameters"/>
     </node>
 
+    <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
+        <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image_raw"/>
+        <remap from ="erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
+        <param name="base_path" type="string" value="$(arg base_path)" />
+    </node>
 
-
- <!-- launch dynamic reconfigure -->
- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
+    <!-- launch dynamic reconfigure -->
+    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
 
 </launch>
