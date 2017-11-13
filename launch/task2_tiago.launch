@@ -37,7 +37,12 @@
              to="/pal_navigation_sm"/>
     <remap from="~/nav_module/move_base_reconf"
              to="/move_base/PalLocalPlanner/set_parameters"/>
-  
+      <param name="~/nav_module/poi_max_retries" value="5"/>
+    <param name="~/nav_module/poi_enable_timeout" value="false"/>
+    <param name="~/nav_module/poi_feedback_watchdog_time_s" value="50"/>
+    <param name="~/nav_module/poi_timeout_s" value="10"/>
+    <param name="~/nav_module/poi_enabled" value="true"/>
+
     </node>
     <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
         <remap from ="erl_person_classifier/front_door_camera" to="/xtion/rgb/image_raw"/>

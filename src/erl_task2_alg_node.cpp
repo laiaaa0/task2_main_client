@@ -71,6 +71,7 @@ bool ErlTask2AlgNode::action_greet(){
       break;
     default:
       sentence = "Sorry, I don't know you. I cannot open the door";
+      this->current_person = Unknown;
       break;
   }
     tts.say(sentence);
@@ -152,6 +153,7 @@ bool ErlTask2AlgNode::action_room(){
         return (this->action_wait_leave());
         break;
       default:
+	
         return true;
         break;
  }
@@ -200,9 +202,9 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           break;
         case act_wait:
-          ROS_INFO ("[TASK2]:Waiting for 20 seconds in the room");
+          ROS_INFO ("[TASK2]:Waiting for %d seconds in the room: elapsed:%f",this->config_.waiting_time, ((float)clock()-(float)waitingTime)/CLOCKS_PER_SEC);
           if (this->isWaiting){
-            if ((clock()-waitingTime)/CLOCKS_PER_SEC>this->config_.waiting_time){
+            if ((float)(clock()-waitingTime)/CLOCKS_PER_SEC>=this->config_.waiting_time){
               this->isWaiting = false;
               this->t2_a_s = act_returndoor;
             }
@@ -246,9 +248,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
     case task2_Wait:
       // TODO Wait from doorbell, and try it.
-      //if (devices_module.listen_bell()) {
-
-      if (this->hasCalled){
+      if (devices_module.listen_bell() or (this->hasCalled)){
             this->t2_m_s = task2_Classify;
             this->hasCalled = false;
       } else {
