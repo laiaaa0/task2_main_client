@@ -46,11 +46,21 @@
   <build_depend>erl_object_classifier</build_depend>
   <build_depend>tiago_modules</build_depend>
 
+
+
+
   <run_depend>iri_base_algorithm</run_depend>
   <run_depend>erl_classification_modules</run_depend>
   <run_depend>erl_person_classifier</run_depend>
   <run_depend>erl_object_classifier</run_depend>
   <run_depend>tiago_modules</run_depend>
+
+
+  <build_depend>devices_manager</build_depend>
+  <run_depend>devices_manager</run_depend>
+
+
+
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

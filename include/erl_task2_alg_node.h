@@ -31,6 +31,7 @@
 #include <erl_classification_modules/person_classification_module.h>
 #include <tiago_modules/tts_module.h>
 #include <tiago_modules/nav_module.h>
+#include <devices_manager/devices_manager.h>
 #include <ctime>
 // [publisher subscriber headers]
 
@@ -69,7 +70,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     * Is updated everytime function config_update() is called.
     */
     Config config_;
-    //CDevicesManagerModule devices_module;
+    CDevicesManagerModule devices_module;
     CPersonClassificationModule classifier_module;
     CTTSModule tts;
     CNavModule nav_module;

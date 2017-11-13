@@ -4,7 +4,8 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
   algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>(),
     classifier_module("classifier"),
     tts("tts_module"),
-    nav_module("nav_module")
+    nav_module("nav_module"),
+    devices_module("devices_module")
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
@@ -182,6 +183,7 @@ bool ErlTask2AlgNode::action_algorithm(){
           ROS_INFO ("[TASK2]:Requesting to open the door");
           if (this->action_say_sentence("Could you please open the door?")){
             this -> t2_a_s = act_navigate;
+            //TODO wait for a certain time.
           }
           else this->t2_a_s = act_opendoor;
           break;
@@ -235,14 +237,15 @@ void ErlTask2AlgNode::mainNodeThread(void)
   bool result;
   switch (this->t2_m_s){
     case task2_Start:
-      // Wait from call from erl_utils > task_state_controller > start_task_2.
+      // TODO : Wait from call from erl_utils > task_state_controller > start_task_2.
+      // Implement the referee and starting state machine
       if (this->startTask){
         this->t2_m_s = task2_Wait;
         this->startTask = false;
       }
       break;
     case task2_Wait:
-      // Wait from doorbell
+      // TODO Wait from doorbell, and try it.
       //if (devices_module.listen_bell()) {
 
       if (this->hasCalled){
@@ -264,6 +267,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
         if (labelToPerson(label)){
           if (seen_people[this->current_person]){
+            //TODO : Complete the algorithm : if someone is seen, try again.
             ROS_INFO ("[TASK2]:I have already seen %s\n",label.c_str());
           }
           seen_people[this->current_person] = true;

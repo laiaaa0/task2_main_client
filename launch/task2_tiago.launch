@@ -1,5 +1,7 @@
   <launch>
 
+    <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/task2-welcoming_visitors_alg/"/>
+
     <node pkg="task2_client" 
 	type="task2_client" 
 	name="task2_client" 
@@ -37,10 +39,9 @@
              to="/move_base/PalLocalPlanner/set_parameters"/>
   
     </node>
-    <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/task2-welcoming_visitors_alg/"/>
-    <node pkg="person_classifier" type="person_classifier" name="person_classifier" output="screen">
-        <remap from ="person_classifier/front_door_camera" to="/xtion/rgb/image_raw"/>
-        <remap from ="person_classifier/front_cam_info" to="/xtion/rgb/cam_info"/>
+    <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
+        <remap from ="erl_person_classifier/front_door_camera" to="/xtion/rgb/image_raw"/>
+        <remap from ="erl_person_classifier/front_cam_info" to="/xtion/rgb/cam_info"/>
         <param name="base_path" type="string" value="$(arg base_path)" />
 
     </node>
