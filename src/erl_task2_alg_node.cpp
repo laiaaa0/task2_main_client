@@ -15,8 +15,9 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     this->current_person = Unknown;
     this->visitors_counter = 0;
     this->isWaiting = false;
-
+    this->classification_retries = 0;
     for (size_t i = 0; i<4; ++i) seen_people.push_back(false);
+
   // [init publishers]
 
   // [init subscribers]
@@ -34,20 +35,90 @@ ErlTask2AlgNode::~ErlTask2AlgNode(void)
 {
   // [free dynamic memory]
 }
+bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const float acc){
+  if (acc>=0.9 && !seen_people[this->current_person]){
+    //We assume the classification is correct.
+    seen_people[this->current_person] = true;
+    this->t2_m_s = task2_Act;
+
+  }
+  else {
+    if (seen_people[this->current_person]){
+      //if the person has been seen, retry.
+      if (this->classification_retries<this->config_.max_retries){
+        this->t2_m_s = task2_Classify;
+        this->classification_retries ++;
+      }
+      else {
+
+          //TODO : THINK WHAT HAPPENS IF TOO MUCH RETRIES ???
+
+          this->t2_m_s = task2_Start;
+      }
+
+    }
+    else {
+      //if the classification has more than half accuracy, retry only once, and compare
+      if (acc>=0.5){
+        std::string aux_lab, err_;
+        float aux_acc;
+        Person first_person = this->current_person;
+        bool result = this->classifier_module.classify_current_person(aux_lab,aux_acc,err_);
+        if (result and labelToPerson(aux_lab)){
+          if (this->current_person == first_person && aux_acc>=0.5){
+          seen_people[this->current_person] = true;
+          this->t2_m_s = task2_Act;
+
+          }
+          else {
+            this->t2_m_s = task2_Classify;
+            this->classification_retries ++;
+
+          }
+        }
+        else {
+
+            this->t2_m_s = task2_Classify;
+            this->classification_retries ++;
+        }
+
+
+      }
+      else {
+        if (this->classification_retries < this->config_.max_retries){
+          this->t2_m_s = task2_Classify;
+          this->classification_retries ++;
+        }
+        else {
+          //TODO : THINK WHAT HAPPENS IF TOO MUCH RETRIES ???
+
+          this->t2_m_s = task2_Start;
+
+        }
+
+
+
+      }
+    }
+  }
+ //TODO : CHANGE THIS!!
+  return true;
+}
+
 bool ErlTask2AlgNode::labelToPerson (const std::string & label){
-  if (label=="Unknown"){
+  if (label==this->config_.person_unknown){
     this -> current_person = Unknown;
     return true;
-  } else if (label == "Kimble"){
+  } else if (label == this->config_.person_kimble){
     this -> current_person = Kimble;
     return true;
-  } else if (label == "Annie"){
+  } else if (label == this->config_.person_annie){
     this -> current_person = Annie;
     return true;
-  } else if (label == "Deliman"){
+  } else if (label == this->config_.person_deliman){
     this -> current_person = Deliman;
     return true;
-  } else if (label == "Postman") {
+  } else if (label == this->config_.person_postman) {
     this -> current_person = Postman;
     return true;
   }
@@ -153,7 +224,7 @@ bool ErlTask2AlgNode::action_room(){
         return (this->action_wait_leave());
         break;
       default:
-	
+
         return true;
         break;
  }
@@ -266,16 +337,13 @@ void ErlTask2AlgNode::mainNodeThread(void)
         ROS_INFO ("[TASK2]:Label : %s\n",label.c_str());
         ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
         if (labelToPerson(label)){
-          if (seen_people[this->current_person]){
-            //TODO : Complete the algorithm : if someone is seen, try again.
-            ROS_INFO ("[TASK2]:I have already seen %s\n",label.c_str());
-          }
-          seen_people[this->current_person] = true;
-          this->t2_m_s = task2_Act;
+
+          chooseIfCorrectPerson (label,acc);
         }
       }
       break;
     case task2_Act:
+      this->classification_retries = 0;
       if (this->action_algorithm()){
         this->t2_m_s = task2_Finish_act;
       }

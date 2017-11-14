@@ -81,6 +81,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     Person current_person;
     int visitors_counter;
     int visitors_num;
+    int classification_retries;
     task2_main_states t2_m_s;
     task2_act_states t2_a_s;
     std::string kitchen_name;
@@ -112,6 +113,8 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool action_say_sentence(const std::string & sentence);
     bool action_wait_leave();
     bool action_gotodoor();
+    bool chooseIfCorrectPerson (const std::string & label,const float acc);
+
 
     bool wait_result();
     bool labelToPerson (const std::string & label);
