@@ -3,7 +3,6 @@
     <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/task2-welcoming_visitors_alg/"/>
    
     <node pkg="task2_client" type="task2_client" name="task2_client" output="screen">
-        <remap from ="erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
 	<!-- tts remappings -->
         <remap from="~/tts_module/tts" to="/tts"/>
 	<!-- navigation remappings -->
@@ -27,7 +26,6 @@
 
     <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
         <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image_raw"/>
-        <remap from ="erl_person_classifier/front_cam_info" to="/roah_ipcam/cam_info"/>
         <param name="base_path" type="string" value="$(arg base_path)" />
     </node>
 
