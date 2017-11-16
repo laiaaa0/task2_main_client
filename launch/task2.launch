@@ -1,6 +1,6 @@
   <launch>
 
-    <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/task2-welcoming_visitors_alg/"/>
+    <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/person_classifier/"/>
    
     <node pkg="task2_client" type="task2_client" name="task2_client" output="screen">
 	<!-- tts remappings -->

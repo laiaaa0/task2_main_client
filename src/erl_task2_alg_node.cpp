@@ -5,7 +5,8 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     classifier_module("classifier"),
     tts("tts_module"),
     nav_module("nav_module"),
-    devices_module("devices_module")
+    devices_module("devices_module"),
+    referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee")
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
@@ -312,10 +313,16 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case task2_Start:
       // TODO : Wait from call from erl_utils > task_state_controller > start_task_2.
       // Implement the referee and starting state machine
-      if (this->startTask){
-        this->t2_m_s = task2_Wait;
-        this->startTask = false;
+      //if (this->startTask){
+        //this->t2_m_s = task2_Wait;
+       // this->startTask = false;
+      //}
+      ROS_INFO("[TASK2] Wait start"); 
+      if(this->referee.execute()){
+       this->t2_m_s=task2_Wait;
       }
+      else
+        this->t2_m_s=task2_Start;
       break;
     case task2_Wait:
       // TODO Wait from doorbell, and try it.
@@ -359,6 +366,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
     case task2_End:
       ROS_INFO ("[TASK2]:Task2 client :: Finish!");
+      this->referee.execution_done();
       break;
 
    }
