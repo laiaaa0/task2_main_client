@@ -6,6 +6,7 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     tts("tts_module"),
     nav_module("nav_module"),
     devices_module("devices_module"),
+    log_module("log_module"),
     referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee")
 {
   //init class attributes if necessary
@@ -108,24 +109,40 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
 
 bool ErlTask2AlgNode::labelToPerson (const std::string & label){
   if (label==this->config_.person_unknown){
-    this -> current_person = Unknown;
+    this->current_person = Unknown;
     return true;
   } else if (label == this->config_.person_kimble){
-    this -> current_person = Kimble;
+    this->current_person = Kimble;
     return true;
   } else if (label == this->config_.person_annie){
-    this -> current_person = Annie;
+    this->current_person = Annie;
     return true;
   } else if (label == this->config_.person_deliman){
-    this -> current_person = Deliman;
+    this->current_person = Deliman;
     return true;
   } else if (label == this->config_.person_postman) {
-    this -> current_person = Postman;
+    this->current_person = Postman;
     return true;
   }
   return false;
 }
 
+
+std::string ErlTask2AlgNode::currentPersonStr (){
+  if (this->current_person==Unknown){
+    return this->config_.person_unknown;
+  } else if (this->current_person == Kimble){
+    return this->config_.person_kimble;
+  } else if (this->current_person == Annie){
+    return this->config_.person_annie;
+  }else if (this->current_person == Deliman){
+    return this->config_.person_deliman;
+  }else if (this->current_person == Postman){
+    return this->config_.person_postman;
+  }
+  else return "";
+
+}
 
 bool ErlTask2AlgNode::action_greet(){
   static bool is_sentence_sent = false;
@@ -198,12 +215,16 @@ bool ErlTask2AlgNode::action_gotodoor(){
 bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
   static bool is_sentence_sent = false;
   if (!is_sentence_sent){
+    //TODO : UNCOMMENT
+    //this->log_module.start_logging_audio();
     tts.say(sentence);
     is_sentence_sent = true;
   }
   else {
     if (tts.is_finished()){
       is_sentence_sent  = false;
+        //TODO : UNCOMMENT
+        //this->log_module.stop_logging_audio();
       return true;
 
     }
@@ -239,8 +260,8 @@ bool ErlTask2AlgNode::action_algorithm(){
           if (this->action_greet()){
             this->t2_a_s = act_gotodoor;
             if (this->current_person == Unknown) {
-              this -> t2_a_s =  act_greet;
-              this -> t2_m_s = task2_Finish_act;
+              this->t2_a_s =  act_greet;
+              this->t2_m_s = task2_Finish_act;
             }
           }
           break;
@@ -256,7 +277,7 @@ bool ErlTask2AlgNode::action_algorithm(){
         case act_opendoor:
           ROS_INFO ("[TASK2]:Requesting to open the door");
           if (this->action_say_sentence("Could you please open the door?")){
-            this -> t2_a_s = act_navigate;
+            this->t2_a_s = act_navigate;
             //TODO wait for a certain time.
           }
           else this->t2_a_s = act_opendoor;
@@ -317,9 +338,10 @@ void ErlTask2AlgNode::mainNodeThread(void)
         //this->t2_m_s = task2_Wait;
        // this->startTask = false;
       //}
-      ROS_INFO("[TASK2] Wait start"); 
-      if(this->referee.execute()){
+      ROS_INFO("[TASK2] Wait start");
+      if(this->referee.execute() or (this->startTask)){
        this->t2_m_s=task2_Wait;
+       this->log_module.start_data_logging();
       }
       else
         this->t2_m_s=task2_Start;
@@ -329,9 +351,12 @@ void ErlTask2AlgNode::mainNodeThread(void)
       if (devices_module.listen_bell() or (this->hasCalled)){
             this->t2_m_s = task2_Classify;
             this->hasCalled = false;
+            this->log_module.log_command("ring_bell");
+            this->log_module.start_logging_images_front_door();
+            this->log_module.log_camera_info_front_door();
+
       } else {
             this-> t2_m_s = task2_Wait;
-
       }
 
 
@@ -339,18 +364,22 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case task2_Classify:
       result = this->classifier_module.classify_current_person(label,acc,error_msg);
       if (result) {
-        ROS_INFO ("[TASK2]:Successful classifier module -> classify_current_person function call");
+        ROS_INFO ("[TASK2]:Successful classifier module->classify_current_person function call");
         ROS_INFO ("[TASK2]:Error : %s\n",error_msg.c_str());
         ROS_INFO ("[TASK2]:Label : %s\n",label.c_str());
         ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
         if (labelToPerson(label)){
 
           chooseIfCorrectPerson (label,acc);
+          if (this->t2_m_s == task2_Act){
+            this->log_module.log_visitor(currentPersonStr());
+            this->log_module.stop_logging_images_front_door();
+              this->classification_retries = 0;
+          }
         }
       }
       break;
     case task2_Act:
-      this->classification_retries = 0;
       if (this->action_algorithm()){
         this->t2_m_s = task2_Finish_act;
       }
@@ -365,7 +394,9 @@ void ErlTask2AlgNode::mainNodeThread(void)
         }
       break;
     case task2_End:
+      this->log_module.stop_data_logging();
       ROS_INFO ("[TASK2]:Task2 client :: Finish!");
+
       this->referee.execution_done();
       break;
 

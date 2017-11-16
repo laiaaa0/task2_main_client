@@ -31,6 +31,7 @@
 #include <erl_classification_modules/person_classification_module.h>
 #include <tiago_modules/tts_module.h>
 #include <tiago_modules/nav_module.h>
+#include "log_modules/log_module.h"
 #include <task_state_controller/task_state_controller.h>
 #include <devices_manager/devices_manager.h>
 #include <ctime>
@@ -76,7 +77,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     CTTSModule tts;
     CNavModule nav_module;
     CTaskStateControllerModule referee;
-
+    CLogModule log_module;
     bool hasCalled;
     bool startTask;
     bool isWaiting;
@@ -121,6 +122,8 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
 
     bool wait_result();
     bool labelToPerson (const std::string & label);
+    std::string currentPersonStr ();
+
 
   protected:
    /**

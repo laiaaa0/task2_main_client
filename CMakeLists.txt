@@ -6,7 +6,8 @@ find_package(catkin REQUIRED)
 # ********************************************************************
 #                 Add catkin additional components here
 # ********************************************************************
-find_package(catkin REQUIRED COMPONENTS iri_base_algorithm erl_classification_modules erl_object_classifier erl_person_classifier tiago_modules devices_manager task_state_controller)
+find_package(catkin REQUIRED COMPONENTS iri_base_algorithm
+erl_classification_modules erl_object_classifier erl_person_classifier tiago_modules devices_manager task_state_controller log_modules)
 
 find_package(iriutils REQUIRED)
 
@@ -64,8 +65,15 @@ catkin_package(
 # ********************************************************************
 #            Add ROS and IRI ROS run time dependencies
 # ********************************************************************
- CATKIN_DEPENDS iri_base_algorithm erl_classification_modules erl_object_classifier erl_person_classifier tiago_modules devices_manager task_state_controller
-
+ CATKIN_DEPENDS
+ iri_base_algorithm
+ erl_classification_modules
+ erl_object_classifier
+ erl_person_classifier
+ tiago_modules
+ devices_manager
+ task_state_controller
+ log_modules
 # ********************************************************************
 #      Add system and labrobotica run time dependencies here
 # ********************************************************************

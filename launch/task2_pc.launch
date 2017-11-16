@@ -1,8 +1,11 @@
 <launch>
 
     <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/person_classifier/"/>
+    <arg name = "rosbag_path" default = "/home/lfreixas/"/>
 
     <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>
+    <!-- TODO : LAUNCH LOG NODE -->
+<!--    <include file="$(find log_nodes)/launch/erl_log_tmb2.launch"/> -->
 
  <node pkg="task2_client"
 	type="task2_client"
@@ -102,7 +105,49 @@
     <param name="~/nav_module/poi_feedback_watchdog_time_s" value="50"/>
     <param name="~/nav_module/poi_timeout_s" value="10"/>
     <param name="~/nav_module/poi_enabled" value="true"/>
+
+    <!--LOGS-->
+      <!-- Log Order -->
+      <remap from="~/log_module/log_module"
+             to="/erl_log_base/erl_log_tmb2/log_orders"/>
+
+      <!-- En/Dis Logs -->
+      <remap from="~/log_module/en_dis_logs"
+       to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
+
+      <!-- Act Log -->
+      <remap from="~/log_module/act_log"
+       to="/erl_log_base/erl_log_tmb2/activate_log"/>
+
+      <!-- Topics -->
+      <!-- Visitor -->
+      <remap from="~/log_module/visitor"
+       to="/erl_log_base/erl_log_tmb2/visitor"/>
+
+      <!-- Notification -->
+      <remap from="~/log_module/notification"
+       to="/erl_log_base/erl_log_tmb2/notification"/>
+
+      <!-- Trajectory -->
+      <remap from="~/log_module/path"
+       to="/erl_log_base/erl_log_tmb2/path"/>
+
+      <!-- Command -->
+      <remap from="~/log_module/command"
+       to="/erl_log_base/erl_log_tmb2/command"/>
+
+
+
+
+
     </node>
+
+
+
+
+
+
+
 
   <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
         <remap from ="erl_person_classifier/front_door_camera" to="/usb_cam/image_raw"/>
