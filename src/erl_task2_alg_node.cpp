@@ -37,6 +37,28 @@ ErlTask2AlgNode::~ErlTask2AlgNode(void)
 {
   // [free dynamic memory]
 }
+void ErlTask2AlgNode::retryOrGetHighest(const float acc){
+  if (this->classification_retries < this -> config_.max_retries){
+    if (this->classification_retries == 0){
+      this->most_probable_person = this->current_person;
+      this->highest_accuracy = acc;
+    }else {
+      if (acc>this->highest_accuracy){
+        this->most_probable_person = this->current_person;
+        this->highest_accuracy = acc;
+      }
+    }
+    this->classification_retries ++;
+    this->t2_m_s = task2_Classify;
+  }
+  else {
+    //We accept the person with highest accuracy
+      this->t2_m_s = task2_Act;
+      this->current_person = this->most_probable_person;
+      seen_people[this->current_person] = true;
+  }
+
+}
 bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const float acc){
   if (acc>=0.9 && !seen_people[this->current_person]){
     //We assume the classification is correct.
@@ -47,17 +69,7 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
   else {
     if (seen_people[this->current_person]){
       //if the person has been seen, retry.
-      if (this->classification_retries<this->config_.max_retries){
-        this->t2_m_s = task2_Classify;
-        this->classification_retries ++;
-      }
-      else {
-
-          //TODO : THINK WHAT HAPPENS IF TOO MUCH RETRIES ???
-
-          this->t2_m_s = task2_Start;
-      }
-
+      retryOrGetHighest(acc);
     }
     else {
       //if the classification has more than half accuracy, retry only once, and compare
@@ -73,37 +85,20 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
 
           }
           else {
-            this->t2_m_s = task2_Classify;
-            this->classification_retries ++;
-
+            retryOrGetHighest(acc);
           }
         }
         else {
-
-            this->t2_m_s = task2_Classify;
-            this->classification_retries ++;
+          retryOrGetHighest(acc);
         }
 
 
       }
       else {
-        if (this->classification_retries < this->config_.max_retries){
-          this->t2_m_s = task2_Classify;
-          this->classification_retries ++;
-        }
-        else {
-          //TODO : THINK WHAT HAPPENS IF TOO MUCH RETRIES ???
-
-          this->t2_m_s = task2_Start;
-
-        }
-
-
-
+        retryOrGetHighest(acc);
       }
     }
   }
- //TODO : CHANGE THIS!!
   return true;
 }
 
@@ -167,8 +162,21 @@ bool ErlTask2AlgNode::action_greet(){
     is_sentence_sent = true;
   }
   if (tts.is_finished()){
-    is_sentence_sent  = false;
-    return true;
+    if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
+      is_sentence_sent  = false;
+      this->current_action_retries = 0;
+        //TODO : UNCOMMENT
+        //this->log_module.stop_logging_audio();
+      return true;
+
+    }
+    else {
+      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+      is_sentence_sent  = false;
+      this->current_action_retries ++;
+      return false;
+    }
+
   }
   return false;
 }
@@ -194,10 +202,44 @@ bool ErlTask2AlgNode::action_navigate(){
     is_poi_sent = true;
   }
   if (nav_module.is_finished()){
-      is_poi_sent = false;
+    if (nav_module.get_status()==NAV_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
+      is_poi_sent  = false;
+      this->current_action_retries = 0;
       return true;
+
+    }
+    else {
+      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+      is_poi_sent  = false;
+      this->current_action_retries ++;
+      return false;
+    }
   }
   else return false;
+}
+
+bool ErlTask2AlgNode::action_gotoIDLE(){
+  std::string POI = this->idle_name;
+  static bool is_poi_sent = false;
+  //first execution : send the poi.
+  if (!is_poi_sent){
+    nav_module.go_to_poi(POI);
+    is_poi_sent = true;
+  }
+  if (nav_module.is_finished()){
+    if (nav_module.get_status()==NAV_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
+      is_poi_sent  = false;
+      this->current_action_retries = 0;
+      return true;
+
+    }
+    else {
+      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+      is_poi_sent  = false;
+      this->current_action_retries ++;
+      return false;
+    }
+  } else return false;
 }
 bool ErlTask2AlgNode::action_gotodoor(){
   std::string POI = this->entrance_name;
@@ -208,8 +250,18 @@ bool ErlTask2AlgNode::action_gotodoor(){
     is_poi_sent = true;
   }
   if (nav_module.is_finished()){
-    is_poi_sent = false;
-    return true;
+    if (nav_module.get_status()==NAV_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
+      is_poi_sent  = false;
+      this->current_action_retries = 0;
+      return true;
+
+    }
+    else {
+      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+      is_poi_sent  = false;
+      this->current_action_retries ++;
+      return false;
+    }
   } else return false;
 }
 bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
@@ -222,10 +274,20 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
   }
   else {
     if (tts.is_finished()){
-      is_sentence_sent  = false;
-        //TODO : UNCOMMENT
-        //this->log_module.stop_logging_audio();
-      return true;
+      if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
+        is_sentence_sent  = false;
+        this->current_action_retries = 0;
+          //TODO : UNCOMMENT
+          //this->log_module.stop_logging_audio();
+        return true;
+
+      }
+      else {
+        ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+        is_sentence_sent  = false;
+        this->current_action_retries ++;
+        return false;
+      }
 
     }
   }
@@ -295,14 +357,16 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           break;
         case act_wait:
-          ROS_INFO ("[TASK2]:Waiting for %d seconds in the room: elapsed:%f",this->config_.waiting_time, ((float)clock()-(float)waitingTime)/CLOCKS_PER_SEC);
+
+          ROS_INFO ("[TASK2]:Waiting for %d seconds in the room: elapsed:%.f ",this->config_.waiting_time, difftime(time(NULL),waitingTime));
+          //std::cout<<type(difftime(time(NULL),waitingTime))<<std::endl;
           if (this->isWaiting){
-            if ((float)(clock()-waitingTime)/CLOCKS_PER_SEC>=this->config_.waiting_time){
+            if (difftime(time(NULL),waitingTime)>=this->config_.waiting_time){
               this->isWaiting = false;
               this->t2_a_s = act_returndoor;
             }
           } else {
-            waitingTime = clock();
+            waitingTime = time(NULL);
             this->isWaiting = true;
             this->t2_a_s = act_wait;
           }
@@ -332,14 +396,10 @@ void ErlTask2AlgNode::mainNodeThread(void)
   bool result;
   switch (this->t2_m_s){
     case task2_Start:
-      // TODO : Wait from call from erl_utils > task_state_controller > start_task_2.
-      // Implement the referee and starting state machine
-      //if (this->startTask){
-        //this->t2_m_s = task2_Wait;
-       // this->startTask = false;
-      //}
+
       ROS_INFO("[TASK2] Wait start");
       if(this->referee.execute() or (this->startTask)){
+        this->startTask = false;
        this->t2_m_s=task2_Wait;
        this->log_module.start_data_logging();
       }
@@ -347,7 +407,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         this->t2_m_s=task2_Start;
       break;
     case task2_Wait:
-      // TODO Wait from doorbell, and try it.
+
       if (devices_module.listen_bell() or (this->hasCalled)){
             this->t2_m_s = task2_Classify;
             this->hasCalled = false;
@@ -369,11 +429,11 @@ void ErlTask2AlgNode::mainNodeThread(void)
         ROS_INFO ("[TASK2]:Label : %s\n",label.c_str());
         ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
         if (labelToPerson(label)){
-
           chooseIfCorrectPerson (label,acc);
           if (this->t2_m_s == task2_Act){
             this->log_module.log_visitor(currentPersonStr());
             this->log_module.stop_logging_images_front_door();
+            //TODO : STOP LOGGING CAMERA INFO FRONT DOOR
               this->classification_retries = 0;
           }
         }
@@ -381,9 +441,15 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
     case task2_Act:
       if (this->action_algorithm()){
+        this->t2_m_s = task2_ReturnIdle;
+      }
+      break;
+    case task2_ReturnIdle:
+      if (this->action_gotoIDLE()){
         this->t2_m_s = task2_Finish_act;
       }
       break;
+
     case task2_Finish_act:
         this->visitors_counter ++;
         if (this->visitors_counter >= this->visitors_num){
@@ -422,6 +488,7 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
   this->kitchen_name = config.kitchen_name;
   this->entrance_name = config.entrance_name;
   this->bedroom_name = config.bedroom_name;
+  this->idle_name = config.idle_name;
   this->visitors_num = config.visitors_num;
   if (config.start_task){
      this->startTask = config.start_task;

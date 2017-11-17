@@ -34,7 +34,7 @@
 #include "log_modules/log_module.h"
 #include <task_state_controller/task_state_controller.h>
 #include <devices_manager/devices_manager.h>
-#include <ctime>
+#include <time.h>
 // [publisher subscriber headers]
 
 // [service client headers]
@@ -42,7 +42,7 @@
 // [action server client headers]
 
 
-typedef enum {task2_Start,task2_Wait, task2_Classify, task2_Act,task2_Finish_act, task2_End} task2_main_states;
+typedef enum {task2_Start,task2_Wait, task2_Classify, task2_Act,task2_Finish_act, task2_ReturnIdle, task2_End} task2_main_states;
 typedef enum {act_greet, act_gotodoor, act_opendoor, act_navigate, act_actionroom, act_wait, act_returndoor} task2_act_states;
 typedef enum {Deliman, Postman, Kimble, Unknown, Annie} Person;
 
@@ -81,17 +81,21 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool hasCalled;
     bool startTask;
     bool isWaiting;
-    clock_t waitingTime;
+    time_t waitingTime;
     Person current_person;
     int visitors_counter;
     int visitors_num;
     int classification_retries;
+    int current_action_retries;
     task2_main_states t2_m_s;
     task2_act_states t2_a_s;
     std::string kitchen_name;
     std::string entrance_name;
     std::string bedroom_name;
+    std::string idle_name;
     std::vector<bool>seen_people;
+    Person most_probable_person;
+    float highest_accuracy;
   public:
    /**
     * \brief Constructor
@@ -117,9 +121,11 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool action_say_sentence(const std::string & sentence);
     bool action_wait_leave();
     bool action_gotodoor();
+    bool action_gotoIDLE();
     bool chooseIfCorrectPerson (const std::string & label,const float acc);
 
 
+    void retryOrGetHighest(const float acc);
     bool wait_result();
     bool labelToPerson (const std::string & label);
     std::string currentPersonStr ();

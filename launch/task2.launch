@@ -1,35 +1,163 @@
-  <launch>
+<launch>
+  <!--DEFINE ARGUMENTS-->
+  <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/person_classifier/"/>
+  <arg name = "rosbag_path" default = "/home/lfreixas/"/>
 
-    <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/person_classifier/"/>
-   
-    <node pkg="task2_client" type="task2_client" name="task2_client" output="screen">
-	<!-- tts remappings -->
-        <remap from="~/tts_module/tts" to="/tts"/>
-	<!-- navigation remappings -->
-     	<remap from="~/nav_module/move_base"
-                 to="/move_base"/>
-    	<remap from="~/nav_module/move_poi"
-    	         to="/poi_navigation_server/go_to_poi"/>
-    	<remap from="~/nav_module/move_waypoint"
-    	         to="/pal_waypoint/navigate"/>
-    	<remap from="~/nav_module/odom"
-    	         to="/mobile_base_controller/odom"/>
-    	<remap from="~/nav_module/clear_costmaps"
-    	         to="/move_base/clear_costmaps"/>
-    	<remap from="~/nav_module/change_map"
-    	         to="/pal_map_manager/change_map"/>
-    	<remap from="~/nav_module/set_op_mode"
-    	         to="/pal_navigation_sm"/>
-    	<remap from="~/nav_module/move_base_reconf"
-    	         to="/move_base/PalLocalPlanner/set_parameters"/>
-    </node>
+  <!--LAUNCH IMAGE VIEW-->
+  <node pkg="image_view" type="image_view" name="image_view">
+    <remap from="image" to="/roah_ipcam/image_raw" />
+  </node>
 
-    <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
+
+  <include file="$(find log_nodes)/launch/erl_log_tmb2.launch">
+    <param name="rosbag_path" type="string" value="$(arg rosbag_path)" />
+  </include>
+
+
+  <!--LAUNCH CLIENT NODE-->
+<node pkg="task2_client"
+    type="task2_client"
+    name="task2_client"
+    output="screen"
+    ns="/tiago">
+
+
+  <!-- device (bell) remapping -->
+    <remap from="~/devices_module/bell" to="/roah_rsbb/devices/bell"/>
+
+ <!-- Referee Module -->
+    <remap from="~/task2_referee/end_execute"
+      to="/roah_rsbb/end_execute"/>
+    <remap from="~/task2_referee/end_prepare"
+      to="/roah_rsbb/end_prepare"/>
+    <remap from="~/task2_referee/benchmark_state"
+      to="/roah_rsbb/benchmark/state"/>
+    <remap from="~/task2_referee/benchmark"
+            to="/roah_rsbb/benchmark"/>
+<!-- Nav SubModule for Referee Module -->
+    <remap from="~/task2_referee/nav_module/move_base"
+      to="/move_base"/>
+    <remap from="~/task2_referee/nav_module/move_poi"
+      to="/poi_navigation_server/go_to_poi"/>
+    <remap from="~/task2_referee/nav_module/move_waypoint"
+      to="/pal_waypoint/navigate"/>
+    <remap from="~/task2_referee/nav_module/odom"
+      to="/mobile_base_controller/odom"/>
+    <remap from="~/task2_referee/nav_module/clear_costmaps"
+      to="/move_base/clear_costmaps"/>
+    <remap from="~/task2_referee/nav_module/change_map"
+      to="/pal_map_manager/change_map"/>
+    <remap from="~/task2_referee/nav_module/set_op_mode"
+      to="/pal_navigation_sm"/>
+    <remap from="~/task2_referee/nav_module/move_base_reconf"
+      to="/move_base/PalLocalPlanner/set_parameters"/>
+    <param name="~/task2_referee/nav_module/mb_rate_hz" value="10"/>
+    <param name="~/task2_referee/nav_module/mb_max_retries" value="5"/>
+    <param name="~/task2_referee/nav_module/mb_enable_timeout" value="false"/>
+    <param name="~/task2_referee/nav_module/mb_feedback_watchdog_time_s" value="20"/>
+    <param name="~/task2_referee/nav_module/mb_timeout_s" value="10"/>
+    <param name="~/task2_referee/nav_module/mb_frame_id" value="/map"/>
+    <param name="~/task2_referee/nav_module/mb_enabled" value="true"/>
+    <param name="~/task2_referee/nav_module/poi_max_retries" value="5"/>
+    <param name="~/task2_referee/nav_module/poi_enable_timeout" value="false"/>
+    <param name="~/task2_referee/nav_module/poi_feedback_watchdog_time_s" value="50"/>
+    <param name="~/task2_referee/nav_module/poi_timeout_s" value="10"/>
+    <param name="~/task2_referee/nav_module/poi_enabled" value="false"/>
+    <param name="~/task2_referee/nav_module/wp_max_retries" value="5"/>
+    <param name="~/task2_referee/nav_module/wp_enable_timeout" value="false"/>
+    <param name="~/task2_referee/nav_module/wp_feedback_watchdog_time_s" value="20"/>
+    <param name="~/task2_referee/nav_module/wp_timeout_s" value="10"/>
+    <param name="~/task2_referee/nav_module/wp_enabled" value="true"/>
+    <param name="~/task2_referee/nav_module/odom_watchdog_time_s" value="1"/>
+    <param name="~/task2_referee/nav_module/tf_timeout_time_s" value="5"/>
+    <param name="~/task2_referee/nav_module/cm_max_retries" value="1"/>
+    <param name="~/task2_referee/nav_module/cm_enable_auto_clear" value="False"/>
+    <param name="~/task2_referee/nav_module/cm_auto_clear_rate_hz" value="0.1"/>
+    <param name="~/task2_referee/nav_module/cm_enabled" value="true"/>
+    <param name="~/task2_referee/nav_module/map_max_retries" value="1"/>
+    <param name="~/task2_referee/nav_module/map_enabled" value="true"/>
+    <param name="~/task2_referee/nav_module/op_mode_max_retries" value="1"/>
+    <param name="~/task2_referee/nav_module/op_mode_enabled" value="true"/>
+
+
+<!-- tts remappings -->
+    <remap from="~/tts_module/tts" to="/tts"/>
+    <param name="~/tts_module/action_max_retries" value="5"/>
+    <param name="~/tts_module/enable_timeout" value="false"/>
+    <param name="~/tts_module/feedback_watchdog_time_s" value="20"/>
+    <param name="~/tts_module/rate_hz" value="10"/>
+    <param name="~/tts_module/timeout_s" value="10"/>
+    <param name="~/tts_module/enabled" value="true"/>
+
+
+<!-- navigation remappings -->
+    <remap from="~/nav_module/move_base"
+    to="/move_base"/>
+    <remap from="~/nav_module/move_poi"
+    to="/poi_navigation_server/go_to_poi"/>
+    <remap from="~/nav_module/move_waypoint"
+    to="/pal_waypoint/navigate"/>
+    <remap from="~/nav_module/odom"
+    to="/mobile_base_controller/odom"/>
+    <remap from="~/nav_module/clear_costmaps"
+    to="/move_base/clear_costmaps"/>
+    <remap from="~/nav_module/change_map"
+    to="/pal_map_manager/change_map"/>
+    <remap from="~/nav_module/set_op_mode"
+    to="/pal_navigation_sm"/>
+    <remap from="~/nav_module/move_base_reconf"
+    to="/move_base/PalLocalPlanner/set_parameters"/>
+    <param name="~/nav_module/poi_max_retries" value="5"/>
+    <param name="~/nav_module/poi_enable_timeout" value="false"/>
+    <param name="~/nav_module/poi_feedback_watchdog_time_s" value="50"/>
+    <param name="~/nav_module/poi_timeout_s" value="10"/>
+    <param name="~/nav_module/poi_enabled" value="true"/>
+
+<!--LOGS-->
+<!-- Log Order -->
+    <remap from="~/log_module/log_orders"
+    to="/erl_log_base/erl_log_tmb2/log_orders"/>
+
+<!-- En/Dis Logs -->
+    <remap from="~/log_module/en_dis_logs"
+    to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
+
+<!-- Act Log -->
+    <remap from="~/log_module/act_log"
+    to="/erl_log_base/erl_log_tmb2/activate_log"/>
+
+<!-- Topics -->
+<!-- Visitor -->
+    <remap from="~/log_module/visitor"
+      to="/erl_log_base/erl_log_tmb2/visitor"/>
+
+<!-- Notification -->
+    <remap from="~/log_module/notification"
+      to="/erl_log_base/erl_log_tmb2/notification"/>
+
+<!-- Trajectory -->
+    <remap from="~/log_module/path"
+      to="/erl_log_base/erl_log_tmb2/path"/>
+
+<!-- Command -->
+    <remap from="~/log_module/command"
+      to="/erl_log_base/erl_log_tmb2/command"/>
+
+</node>
+
+
+
+
+
+
+
+
+      <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
         <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image_raw"/>
         <param name="base_path" type="string" value="$(arg base_path)" />
-    </node>
+      </node>
 
-    <!-- launch dynamic reconfigure -->
-    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
+      <!-- launch dynamic reconfigure -->
+      <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
 
-</launch>
+    </launch>

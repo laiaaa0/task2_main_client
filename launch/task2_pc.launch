@@ -4,8 +4,11 @@
     <arg name = "rosbag_path" default = "/home/lfreixas/"/>
 
     <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>
-    <!-- TODO : LAUNCH LOG NODE -->
-<!--    <include file="$(find log_nodes)/launch/erl_log_tmb2.launch"/> -->
+
+
+    <include file="$(find log_nodes)/launch/erl_log_tmb2.launch">
+      <arg name="rosbag_path" value="$(arg rosbag_path)" />
+    </include>
 
  <node pkg="task2_client"
 	type="task2_client"
@@ -55,7 +58,7 @@
         <param name="~/task2_referee/nav_module/poi_enable_timeout" value="false"/>
         <param name="~/task2_referee/nav_module/poi_feedback_watchdog_time_s" value="50"/>
         <param name="~/task2_referee/nav_module/poi_timeout_s" value="10"/>
-        <param name="~/task2_referee/nav_module/poi_enabled" value="false"/>
+        <param name="~/task2_referee/nav_module/poi_enabled" value="true"/>
         <param name="~/task2_referee/nav_module/wp_max_retries" value="5"/>
         <param name="~/task2_referee/nav_module/wp_enable_timeout" value="false"/>
         <param name="~/task2_referee/nav_module/wp_feedback_watchdog_time_s" value="20"/>
@@ -107,34 +110,34 @@
     <param name="~/nav_module/poi_enabled" value="true"/>
 
     <!--LOGS-->
-      <!-- Log Order -->
-      <remap from="~/log_module/log_module"
-             to="/erl_log_base/erl_log_tmb2/log_orders"/>
+    <!-- Log Order -->
+    <remap from="/tiago/log_module/log_orders"
+    to="/erl_log_base/erl_log_tmb2/log_orders"/>
 
-      <!-- En/Dis Logs -->
-      <remap from="~/log_module/en_dis_logs"
-       to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
+    <!-- En/Dis Logs -->
+    <remap from="~/log_module/en_dis_logs"
+     to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
 
-      <!-- Act Log -->
-      <remap from="~/log_module/act_log"
-       to="/erl_log_base/erl_log_tmb2/activate_log"/>
+    <!-- Act Log -->
+    <remap from="~/log_module/act_log"
+     to="/erl_log_base/erl_log_tmb2/activate_log"/>
 
-      <!-- Topics -->
-      <!-- Visitor -->
-      <remap from="~/log_module/visitor"
-       to="/erl_log_base/erl_log_tmb2/visitor"/>
+    <!-- Topics -->
+    <!-- Visitor -->
+    <remap from="~/log_module/visitor"
+     to="/erl_log_base/erl_log_tmb2/visitor"/>
 
-      <!-- Notification -->
-      <remap from="~/log_module/notification"
-       to="/erl_log_base/erl_log_tmb2/notification"/>
+    <!-- Notification -->
+    <remap from="~/log_module/notification"
+     to="/erl_log_base/erl_log_tmb2/notification"/>
 
-      <!-- Trajectory -->
-      <remap from="~/log_module/path"
-       to="/erl_log_base/erl_log_tmb2/path"/>
+    <!-- Trajectory -->
+    <remap from="~/log_module/path"
+     to="/erl_log_base/erl_log_tmb2/path"/>
 
-      <!-- Command -->
-      <remap from="~/log_module/command"
-       to="/erl_log_base/erl_log_tmb2/command"/>
+    <!-- Command -->
+    <remap from="~/log_module/command"
+     to="/erl_log_base/erl_log_tmb2/command"/>
 
 
 
