@@ -111,7 +111,7 @@
 
     <!--LOGS-->
     <!-- Log Order -->
-    <remap from="/tiago/log_module/log_orders"
+    <remap from="~/log_module/log_orders"
     to="/erl_log_base/erl_log_tmb2/log_orders"/>
 
     <!-- En/Dis Logs -->

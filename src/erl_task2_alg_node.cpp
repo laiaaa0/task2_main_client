@@ -52,10 +52,16 @@ void ErlTask2AlgNode::retryOrGetHighest(const float acc){
     this->t2_m_s = T2_CLASSIFY;
   }
   else {
-    //We accept the person with highest accuracy
+    //We accept the person with highest accuracy - only if we havent seen it???
       this->t2_m_s = T2_ACT;
-      this->current_person = this->most_probable_person;
-      seen_people[this->current_person] = true;
+      //if (!seen_people[this->most_probable_person]){ TODO : WHAT IF WE HAVE SEEN HIM.
+        this->current_person = this->most_probable_person;
+        seen_people[this->current_person] = true;
+
+      //}
+      //else {
+
+      //}
   }
 
 }
@@ -359,7 +365,6 @@ bool ErlTask2AlgNode::action_algorithm(){
         case act_wait:
 
           ROS_INFO ("[TASK2]:Waiting for %d seconds in the room: elapsed:%.f ",this->config_.waiting_time, difftime(time(NULL),waitingTime));
-          //std::cout<<type(difftime(time(NULL),waitingTime))<<std::endl;
           if (this->isWaiting){
             if (difftime(time(NULL),waitingTime)>=this->config_.waiting_time){
               this->isWaiting = false;
