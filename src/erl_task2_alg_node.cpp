@@ -187,7 +187,7 @@ bool ErlTask2AlgNode::action_greet(){
   return false;
 }
 bool ErlTask2AlgNode::action_navigate(){
-  
+
   std::string POI;
   static bool is_poi_sent = false;
   if (!is_poi_sent){
@@ -303,9 +303,9 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
 bool ErlTask2AlgNode::action_wait_leave(){
   static bool isWaitingDoctor = false;
   static time_t firstTime = time(NULL);
-  ROS_INFO ("[TASK2]:Waiting for %d seconds in the bedroom: elapsed:%.f ",15, difftime(time(NULL),firstTime));
+  ROS_INFO ("[TASK2]:Waiting for %d seconds in the bedroom: elapsed:%.f ",this->config_.waiting_time_doctor, difftime(time(NULL),firstTime));
   if (isWaitingDoctor){
-    if (difftime(time(NULL),waitingTime)>=15){
+    if (difftime(time(NULL),waitingTime)>=this->config_.waiting_time_doctor){
       isWaitingDoctor = false;
       return true;
     }
