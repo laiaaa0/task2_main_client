@@ -109,16 +109,16 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
 }
 
 bool ErlTask2AlgNode::labelToPerson (const std::string & label){
-  if (label==this->config_.person_unknown){
+  if (label==this->config_.person_unknown or label==this->config_.person_annie){
     this->current_person = Unknown;
     return true;
   } else if (label == this->config_.person_kimble){
     this->current_person = Kimble;
     return true;
-  } else if (label == this->config_.person_annie){
+  } /*else if (label == this->config_.person_annie){
     this->current_person = Annie;
     return true;
-  } else if (label == this->config_.person_deliman){
+  }*/ else if (label == this->config_.person_deliman){
     this->current_person = Deliman;
     return true;
   } else if (label == this->config_.person_postman) {
@@ -187,6 +187,7 @@ bool ErlTask2AlgNode::action_greet(){
   return false;
 }
 bool ErlTask2AlgNode::action_navigate(){
+  
   std::string POI;
   static bool is_poi_sent = false;
   if (!is_poi_sent){
@@ -300,7 +301,21 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
   return false;
 }
 bool ErlTask2AlgNode::action_wait_leave(){
-  return true;
+  static bool isWaitingDoctor = false;
+  static time_t firstTime = time(NULL);
+  ROS_INFO ("[TASK2]:Waiting for %d seconds in the bedroom: elapsed:%.f ",15, difftime(time(NULL),firstTime));
+  if (isWaitingDoctor){
+    if (difftime(time(NULL),waitingTime)>=15){
+      isWaitingDoctor = false;
+      return true;
+    }
+    else return false;
+  }
+  else {
+    firstTime = time(NULL);
+    isWaitingDoctor= true;
+    return false;
+  }
 }
 bool ErlTask2AlgNode::action_room(){
     switch(this->current_person){
