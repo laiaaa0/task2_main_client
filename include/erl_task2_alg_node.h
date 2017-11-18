@@ -42,7 +42,7 @@
 // [action server client headers]
 
 
-typedef enum {task2_Start,task2_Wait, task2_Classify, task2_Act,task2_Finish_act, task2_ReturnIdle, task2_End} task2_main_states;
+typedef enum {T2_START,T2_WAIT, T2_CLASSIFY, T2_ACT,T2_FINISH, T2_RETURNIDLE, T2_END} T2_MAIN_STATES;
 typedef enum {act_greet, act_gotodoor, act_opendoor, act_navigate, act_actionroom, act_wait, act_returndoor} task2_act_states;
 typedef enum {Deliman, Postman, Kimble, Unknown, Annie} Person;
 
@@ -87,7 +87,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     int visitors_num;
     int classification_retries;
     int current_action_retries;
-    task2_main_states t2_m_s;
+    T2_MAIN_STATES t2_m_s;
     task2_act_states t2_a_s;
     std::string kitchen_name;
     std::string entrance_name;

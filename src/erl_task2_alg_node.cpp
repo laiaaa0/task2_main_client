@@ -12,7 +12,7 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
     this->hasCalled = false;
-    this->t2_m_s =  task2_Start;
+    this->t2_m_s =  T2_START;
     this->t2_a_s = act_greet;
     this->current_person = Unknown;
     this->visitors_counter = 0;
@@ -49,11 +49,11 @@ void ErlTask2AlgNode::retryOrGetHighest(const float acc){
       }
     }
     this->classification_retries ++;
-    this->t2_m_s = task2_Classify;
+    this->t2_m_s = T2_CLASSIFY;
   }
   else {
     //We accept the person with highest accuracy
-      this->t2_m_s = task2_Act;
+      this->t2_m_s = T2_ACT;
       this->current_person = this->most_probable_person;
       seen_people[this->current_person] = true;
   }
@@ -63,7 +63,7 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
   if (acc>=0.9 && !seen_people[this->current_person]){
     //We assume the classification is correct.
     seen_people[this->current_person] = true;
-    this->t2_m_s = task2_Act;
+    this->t2_m_s = T2_ACT;
 
   }
   else {
@@ -81,7 +81,7 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
         if (result and labelToPerson(aux_lab)){
           if (this->current_person == first_person && aux_acc>=0.5){
           seen_people[this->current_person] = true;
-          this->t2_m_s = task2_Act;
+          this->t2_m_s = T2_ACT;
 
           }
           else {
@@ -323,7 +323,7 @@ bool ErlTask2AlgNode::action_algorithm(){
             this->t2_a_s = act_gotodoor;
             if (this->current_person == Unknown) {
               this->t2_a_s =  act_greet;
-              this->t2_m_s = task2_Finish_act;
+              this->t2_m_s = T2_FINISH;
             }
           }
           break;
@@ -395,33 +395,33 @@ void ErlTask2AlgNode::mainNodeThread(void)
   std::string error_msg;
   bool result;
   switch (this->t2_m_s){
-    case task2_Start:
+    case T2_START:
 
       ROS_INFO("[TASK2] Wait start");
       if(this->referee.execute() or (this->startTask)){
         this->startTask = false;
-       this->t2_m_s=task2_Wait;
+       this->t2_m_s=T2_WAIT;
        this->log_module.start_data_logging();
       }
       else
-        this->t2_m_s=task2_Start;
+        this->t2_m_s=T2_START;
       break;
-    case task2_Wait:
+    case T2_WAIT:
 
       if (devices_module.listen_bell() or (this->hasCalled)){
-            this->t2_m_s = task2_Classify;
+            this->t2_m_s = T2_CLASSIFY;
             this->hasCalled = false;
             this->log_module.log_command("ring_bell");
             this->log_module.start_logging_images_front_door();
             this->log_module.log_camera_info_front_door();
 
       } else {
-            this-> t2_m_s = task2_Wait;
+            this-> t2_m_s = T2_WAIT;
       }
 
 
       break;
-    case task2_Classify:
+    case T2_CLASSIFY:
       result = this->classifier_module.classify_current_person(label,acc,error_msg);
       if (result) {
         ROS_INFO ("[TASK2]:Successful classifier module->classify_current_person function call");
@@ -430,36 +430,35 @@ void ErlTask2AlgNode::mainNodeThread(void)
         ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
         if (labelToPerson(label)){
           chooseIfCorrectPerson (label,acc);
-          if (this->t2_m_s == task2_Act){
+          if (this->t2_m_s == T2_ACT){
             this->log_module.log_visitor(currentPersonStr());
             this->log_module.stop_logging_images_front_door();
-            //TODO : STOP LOGGING CAMERA INFO FRONT DOOR
               this->classification_retries = 0;
           }
         }
       }
       break;
-    case task2_Act:
+    case T2_ACT:
       if (this->action_algorithm()){
-        this->t2_m_s = task2_ReturnIdle;
+        this->t2_m_s = T2_RETURNIDLE;
       }
       break;
-    case task2_ReturnIdle:
+    case T2_RETURNIDLE:
       if (this->action_gotoIDLE()){
-        this->t2_m_s = task2_Finish_act;
+        this->t2_m_s = T2_FINISH;
       }
       break;
 
-    case task2_Finish_act:
+    case T2_FINISH:
         this->visitors_counter ++;
         if (this->visitors_counter >= this->visitors_num){
-          this->t2_m_s = task2_End;
+          this->t2_m_s = T2_END;
         }
         else {
-          this->t2_m_s = task2_Wait;
+          this->t2_m_s = T2_WAIT;
         }
       break;
-    case task2_End:
+    case T2_END:
       this->log_module.stop_data_logging();
       ROS_INFO ("[TASK2]:Task2 client :: Finish!");
 
@@ -492,14 +491,14 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
   this->visitors_num = config.visitors_num;
   if (config.start_task){
      this->startTask = config.start_task;
-     this->t2_m_s = task2_Start;
+     this->t2_m_s = T2_START;
      this->t2_a_s = act_greet;
   }
   this->hasCalled = config.ring_bell;
   if (config.ring_bell) config.ring_bell = false;
   if (config.start_actions_for_person){
     if (this->labelToPerson(config.person)){
-      this->t2_m_s =  task2_Act;
+      this->t2_m_s =  T2_ACT;
       this->t2_a_s = act_greet;
     }
     else {
