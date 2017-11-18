@@ -1,7 +1,7 @@
 <launch>
 
     <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/person_classifier/"/>
-    <arg name = "rosbag_path" default = "/home/lfreixas/"/>
+    <arg name = "rosbag_path" default = "/media/usb_stick/"/>
 
     <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>
 
