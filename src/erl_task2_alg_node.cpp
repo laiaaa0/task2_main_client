@@ -191,6 +191,7 @@ bool ErlTask2AlgNode::action_navigate(){
   std::string POI;
   static bool is_poi_sent = false;
   if (!is_poi_sent){
+    nav_module.costmaps_clear();
     switch(this->current_person){
       case Deliman:
         POI = this->kitchen_name;
@@ -230,6 +231,7 @@ bool ErlTask2AlgNode::action_gotoIDLE(){
   static bool is_poi_sent = false;
   //first execution : send the poi.
   if (!is_poi_sent){
+    nav_module.costmaps_clear();
     nav_module.go_to_poi(POI);
     is_poi_sent = true;
   }
@@ -253,6 +255,8 @@ bool ErlTask2AlgNode::action_gotodoor(){
   static bool is_poi_sent = false;
   //first execution : send the poi.
   if (!is_poi_sent){
+
+    nav_module.costmaps_clear();
     nav_module.go_to_poi(POI);
     is_poi_sent = true;
   }
@@ -305,7 +309,7 @@ bool ErlTask2AlgNode::action_wait_leave(){
   static time_t firstTime = time(NULL);
   ROS_INFO ("[TASK2]:Waiting for %d seconds in the bedroom: elapsed:%.f ",this->config_.waiting_time_doctor, difftime(time(NULL),firstTime));
   if (isWaitingDoctor){
-    if (difftime(time(NULL),waitingTime)>=this->config_.waiting_time_doctor){
+    if (difftime(time(NULL),firstTime)>=this->config_.waiting_time_doctor){
       isWaitingDoctor = false;
       return true;
     }
