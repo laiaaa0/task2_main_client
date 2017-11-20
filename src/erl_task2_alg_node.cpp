@@ -171,8 +171,7 @@ bool ErlTask2AlgNode::action_greet(){
     if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
       is_sentence_sent  = false;
       this->current_action_retries = 0;
-        //TODO : UNCOMMENT
-        //this->log_module.stop_logging_audio();
+        this->log_module.stop_logging_audio();
       return true;
 
     }
@@ -278,8 +277,7 @@ bool ErlTask2AlgNode::action_gotodoor(){
 bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
   static bool is_sentence_sent = false;
   if (!is_sentence_sent){
-    //TODO : UNCOMMENT
-    //this->log_module.start_logging_audio();
+    this->log_module.start_logging_audio();
     tts.say(sentence);
     is_sentence_sent = true;
   }
