@@ -5,13 +5,15 @@
 
   <!--LAUNCH IMAGE VIEW-->
   <node pkg="image_view" type="image_view" name="image_view">
-    <remap from="image" to="/roah_ipcam/image_raw" />
+    <remap from="image" to="/roah_ipcam/image" />
   </node>
 
 
       <include file="$(find log_nodes)/launch/erl_log_tmb2.launch">
         <arg name="rosbag_path" value="$(arg rosbag_path)" />
       </include>
+      <include file="$(find roah_ipcam)/launch/roah_ipcam.launch"/>
+
 
    <node pkg="task2_client"
   	type="task2_client"
@@ -156,7 +158,7 @@
 
 
     <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
-          <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image_raw"/>
+          <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image"/>
           <param name="base_path" type="string" value="$(arg base_path)" />
      </node>
 
