@@ -362,8 +362,7 @@ bool ErlTask2AlgNode::action_algorithm(){
         case act_opendoor:
           ROS_INFO ("[TASK2]:Requesting to open the door");
           if (this->action_say_sentence("Could you please open the door?")){
-            this->t2_a_s = act_navigate;
-            //TODO wait for a certain time.
+            this->t2_a_s = act_askfollow;
           }
           else this->t2_a_s = act_opendoor;
           break;
@@ -373,7 +372,7 @@ bool ErlTask2AlgNode::action_algorithm(){
               this->t2_a_s = act_navigate;
               //TODO wait for a certain time.
             }
-            else this->t2_a_s = act_opendoor;
+            else this->t2_a_s = act_askfollow;
             break;
         case act_navigate:
           ROS_INFO ("[TASK2]:Navigating to the room");
@@ -392,7 +391,7 @@ bool ErlTask2AlgNode::action_algorithm(){
           if (this->isWaiting){
             if (difftime(time(NULL),waitingTime)>=this->config_.waiting_time){
               this->isWaiting = false;
-              this->t2_a_s = act_returndoor;
+              this->t2_a_s = act_askfollowdoor;
             }
           } else {
             waitingTime = time(NULL);
@@ -403,10 +402,10 @@ bool ErlTask2AlgNode::action_algorithm(){
         case act_askfollowdoor:
             ROS_INFO ("[TASK2]:Requesting to follow");
             if (this->action_say_sentence("Please follow me to the door")){
-              this->t2_a_s = act_navigate;
+              this->t2_a_s = act_returndoor;
               //TODO wait for a certain time.
             }
-            else this->t2_a_s = act_opendoor;
+            else this->t2_a_s = act_askfollowdoor;
             break;
         case act_returndoor:
           ROS_INFO ("[TASK2]:Going to the door");
