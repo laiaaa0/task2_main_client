@@ -196,7 +196,7 @@ bool ErlTask2AlgNode::action_navigate(){
         POI = this->kitchen_name;
         break;
       case Postman:
-        POI = this->entrance_name;
+        POI = this->config_.halltable_name;
         break;
       case Kimble:
         POI = this->bedroom_name;
@@ -325,7 +325,7 @@ bool ErlTask2AlgNode::action_room(){
         return (this->action_say_sentence("Please deliver the breakfast on the kitchen table"));
         break;
       case Postman:
-        return (this->action_say_sentence("Please deliver the mail in the table on the hall"));
+        return (this->action_say_sentence("Please deliver the mail on the kitchen table"));
         break;
       case Kimble:
         return (this->action_wait_leave());
@@ -435,7 +435,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
             this->hasCalled = false;
             this->log_module.log_command("ring_bell");
             this->log_module.start_logging_images_front_door();
-            this->log_module.log_camera_info_front_door();
+
 
       } else {
             this-> t2_m_s = T2_WAIT;
