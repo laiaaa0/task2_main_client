@@ -12,7 +12,6 @@
       <include file="$(find log_nodes)/launch/erl_log_tmb2.launch">
         <arg name="rosbag_path" value="$(arg rosbag_path)" />
       </include>
-      <include file="$(find roah_ipcam)/launch/roah_ipcam.launch"/>
 
 
    <node pkg="task2_client"

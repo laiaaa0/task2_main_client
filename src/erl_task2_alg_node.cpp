@@ -193,13 +193,13 @@ bool ErlTask2AlgNode::action_navigate(){
     nav_module.costmaps_clear();
     switch(this->current_person){
       case Deliman:
-        POI = this->kitchen_name;
+        POI = this->config_.kitchen_name;
         break;
       case Postman:
         POI = this->config_.halltable_name;
         break;
       case Kimble:
-        POI = this->bedroom_name;
+        POI = this->config_.bedroom_name;
         break;
       default:
         POI = "";
@@ -226,7 +226,7 @@ bool ErlTask2AlgNode::action_navigate(){
 }
 
 bool ErlTask2AlgNode::action_gotoIDLE(){
-  std::string POI = this->idle_name;
+  std::string POI = this->config_.idle_name;
   static bool is_poi_sent = false;
   //first execution : send the poi.
   if (!is_poi_sent){
@@ -250,7 +250,7 @@ bool ErlTask2AlgNode::action_gotoIDLE(){
   } else return false;
 }
 bool ErlTask2AlgNode::action_gotodoor(){
-  std::string POI = this->entrance_name;
+  std::string POI = this->config_.entrance_name;
   static bool is_poi_sent = false;
   //first execution : send the poi.
   if (!is_poi_sent){
@@ -367,6 +367,14 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           else this->t2_a_s = act_opendoor;
           break;
+        case act_askfollow:
+            ROS_INFO ("[TASK2]:Requesting to follow");
+            if (this->action_say_sentence("Please follow me ")){
+              this->t2_a_s = act_navigate;
+              //TODO wait for a certain time.
+            }
+            else this->t2_a_s = act_opendoor;
+            break;
         case act_navigate:
           ROS_INFO ("[TASK2]:Navigating to the room");
           if (this->action_navigate()){
@@ -380,7 +388,6 @@ bool ErlTask2AlgNode::action_algorithm(){
           }
           break;
         case act_wait:
-
           ROS_INFO ("[TASK2]:Waiting for %d seconds in the room: elapsed:%.f ",this->config_.waiting_time, difftime(time(NULL),waitingTime));
           if (this->isWaiting){
             if (difftime(time(NULL),waitingTime)>=this->config_.waiting_time){
@@ -393,6 +400,14 @@ bool ErlTask2AlgNode::action_algorithm(){
             this->t2_a_s = act_wait;
           }
           break;
+        case act_askfollowdoor:
+            ROS_INFO ("[TASK2]:Requesting to follow");
+            if (this->action_say_sentence("Please follow me to the door")){
+              this->t2_a_s = act_navigate;
+              //TODO wait for a certain time.
+            }
+            else this->t2_a_s = act_opendoor;
+            break;
         case act_returndoor:
           ROS_INFO ("[TASK2]:Going to the door");
           if (this->action_gotodoor()){
@@ -506,10 +521,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
 void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
 {
   this->alg_.lock();
-  this->kitchen_name = config.kitchen_name;
-  this->entrance_name = config.entrance_name;
-  this->bedroom_name = config.bedroom_name;
-  this->idle_name = config.idle_name;
+
   this->visitors_num = config.visitors_num;
   if (config.start_task){
      this->startTask = config.start_task;
