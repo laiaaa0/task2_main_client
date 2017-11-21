@@ -460,7 +460,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         if (this->action_say_sentence("Please look at the camera")){
               this->t2_m_s = T2_CLASSIFY;
         }
-        else this->t2_a_s = T2_ASKLOOK;
+        else this->t2_m_s = T2_ASKLOOK;
         break;
     case T2_CLASSIFY:
       result = this->classifier_module.classify_current_person(label,acc,error_msg);
@@ -469,6 +469,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         ROS_INFO ("[TASK2]:Error : %s\n",error_msg.c_str());
         ROS_INFO ("[TASK2]:Label : %s\n",label.c_str());
         ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
+        if (error_msg == "" || this->classification_retries > this->config_.max_retries){
         if (labelToPerson(label)){
           chooseIfCorrectPerson (label,acc);
           if (this->t2_m_s == T2_ACT){
@@ -477,6 +478,12 @@ void ErlTask2AlgNode::mainNodeThread(void)
               this->classification_retries = 0;
           }
         }
+        }
+        else {
+          this->t2_m_s = T2_ASKLOOK;
+          this->classification_retries++;
+        }
+
       }
       break;
     case T2_ACT:
