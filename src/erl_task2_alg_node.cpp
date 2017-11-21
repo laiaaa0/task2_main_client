@@ -445,7 +445,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_WAIT:
 
       if (devices_module.listen_bell() or (this->hasCalled)){
-            this->t2_m_s = T2_CLASSIFY;
+            this->t2_m_s = T2_ASKLOOK;
             this->hasCalled = false;
             this->log_module.log_command("ring_bell");
             this->log_module.start_logging_images_front_door();
@@ -454,9 +454,14 @@ void ErlTask2AlgNode::mainNodeThread(void)
       } else {
             this-> t2_m_s = T2_WAIT;
       }
-
-
       break;
+    case T2_ASKLOOK:
+        ROS_INFO ("[TASK2]:Requesting to follow");
+        if (this->action_say_sentence("Please look at the camera")){
+              this->t2_m_s = T2_CLASSIFY;
+        }
+        else this->t2_a_s = T2_ASKLOOK;
+        break;
     case T2_CLASSIFY:
       result = this->classifier_module.classify_current_person(label,acc,error_msg);
       if (result) {

@@ -42,7 +42,7 @@
 // [action server client headers]
 
 
-typedef enum {T2_START,T2_WAIT, T2_CLASSIFY, T2_ACT,T2_FINISH, T2_RETURNIDLE, T2_END} T2_MAIN_STATES;
+typedef enum {T2_START,T2_WAIT, T2_ASKLOOK, T2_CLASSIFY, T2_ACT,T2_FINISH, T2_RETURNIDLE, T2_END} T2_MAIN_STATES;
 typedef enum {act_greet, act_gotodoor, act_opendoor,act_askfollow, act_navigate, act_actionroom, act_wait, act_askfollowdoor, act_returndoor} task2_act_states;
 typedef enum {Deliman, Postman, Kimble, Unknown, Annie} Person;
 
