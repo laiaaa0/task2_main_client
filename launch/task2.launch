@@ -78,6 +78,7 @@
           <param name="~/task2_referee/nav_module/map_enabled" value="true"/>
           <param name="~/task2_referee/nav_module/op_mode_max_retries" value="1"/>
           <param name="~/task2_referee/nav_module/op_mode_enabled" value="true"/>
+          <param name="~/task2_referee/poi" value="home"/>
 
 
   <!-- tts remappings -->
