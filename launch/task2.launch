@@ -1,14 +1,16 @@
 <launch>
   <!--DEFINE ARGUMENTS-->
   <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/person_classifier/"/>
-  <arg name = "rosbag_path" default = "/media/usb_stick"/>
+  <arg name = "rosbag_path" default = "/media/lfreixas/IRI/"/>
 
   <!--LAUNCH IMAGE VIEW-->
   <node pkg="image_view" type="image_view" name="image_view">
     <remap from="image" to="/roah_ipcam/image" />
   </node>
 
-
+	
+      <include file="$(find audio_capture)/launch/capture.launch"/>
+      
       <include file="$(find log_nodes)/launch/erl_log_tmb2.launch">
         <arg name="rosbag_path" value="$(arg rosbag_path)" />
       </include>
