@@ -164,6 +164,7 @@ bool ErlTask2AlgNode::action_greet(){
       this->current_person = Unknown;
       break;
   }
+    this->log_module.start_logging_audio();
     tts.say(sentence);
     is_sentence_sent = true;
   }
@@ -286,13 +287,12 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
       if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
         is_sentence_sent  = false;
         this->current_action_retries = 0;
-          //TODO : UNCOMMENT
-          //this->log_module.stop_logging_audio();
+          this->log_module.stop_logging_audio();
         return true;
 
       }
       else {
-        ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+        ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying");
         is_sentence_sent  = false;
         this->current_action_retries ++;
         return false;
@@ -443,20 +443,17 @@ void ErlTask2AlgNode::mainNodeThread(void)
         this->t2_m_s=T2_START;
       break;
     case T2_WAIT:
-
       if (devices_module.listen_bell() or (this->hasCalled)){
             this->t2_m_s = T2_ASKLOOK;
             this->hasCalled = false;
             this->log_module.log_command("ring_bell");
             this->log_module.start_logging_images_front_door();
-
-
       } else {
             this-> t2_m_s = T2_WAIT;
       }
       break;
     case T2_ASKLOOK:
-        ROS_INFO ("[TASK2]:Requesting to follow");
+        ROS_INFO ("[TASK2]:Requesting to look at camera");
         if (this->action_say_sentence("Please look at the camera")){
               this->t2_m_s = T2_CLASSIFY;
         }
@@ -475,7 +472,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
           if (this->t2_m_s == T2_ACT){
             this->log_module.log_visitor(currentPersonStr());
             this->log_module.stop_logging_images_front_door();
-              this->classification_retries = 0;
+            this->classification_retries = 0;
           }
         }
         }
@@ -509,10 +506,8 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_END:
       this->log_module.stop_data_logging();
       ROS_INFO ("[TASK2]:Task2 client :: Finish!");
-
       this->referee.execution_done();
       break;
-
    }
   // [fill srv structure and make request to the server]
 
