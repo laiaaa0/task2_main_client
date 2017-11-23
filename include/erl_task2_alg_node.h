@@ -43,7 +43,7 @@
 
 
 typedef enum {T2_START,T2_WAIT, T2_ASKLOOK, T2_CLASSIFY, T2_ACT,T2_FINISH, T2_RETURNIDLE, T2_END} T2_MAIN_STATES;
-typedef enum {act_greet, act_gotodoor, act_opendoor,act_askfollow, act_navigate, act_actionroom, act_wait, act_askfollowdoor, act_returndoor} task2_act_states;
+typedef enum {act_greet, act_gotodoor, act_opendoor,act_askfollow, act_navigate, act_actionroom, act_wait, act_askfollowdoor, act_returndoor, act_saygoodbye} task2_act_states;
 typedef enum {Deliman, Postman, Kimble, Unknown, Annie} Person;
 
 /**
@@ -116,7 +116,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool action_room();
     bool action_say_sentence(const std::string & sentence);
     bool action_wait_leave();
-    bool action_gotodoor();
+    bool action_gotodoor(std::string & POI);
     bool action_gotoIDLE();
     bool chooseIfCorrectPerson (const std::string & label,const float acc);
 

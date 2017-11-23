@@ -1,7 +1,7 @@
 <launch>
   <!--DEFINE ARGUMENTS-->
   <arg name = "base_path" default = "/home/lfreixas/iri-lab/labrobotica/algorithms/person_classifier/"/>
-  <arg name = "rosbag_path" default = "/media/lfreixas/IRI/"/>
+  <arg name = "rosbag_path" default = "/media/lfreixas/IRI/TBM2/"/>
 
   <!--LAUNCH IMAGE VIEW-->
   <node pkg="image_view" type="image_view" name="image_view">

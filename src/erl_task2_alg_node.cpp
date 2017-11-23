@@ -66,6 +66,19 @@ void ErlTask2AlgNode::retryOrGetHighest(const float acc){
 
 }
 bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const float acc){
+  if (acc>=0.9 && !seen_people[this->current_person] && this->current_person == Kimble){
+    std::string p2,p3,err2,err3;
+    float acc2,acc3;
+    bool result1 = this->classifier_module.classify_current_person(p2,acc2,err2);
+    bool result2 = this->classifier_module.classify_current_person(p3,acc3,err3);
+    if (result1 && result2 && err2==err3 && err2 == ""){
+      if (p2==p3 && p3 == currentPersonStr()){
+        seen_people[this->current_person] = true;
+        this->t2_m_s = T2_ACT;
+      }
+    }
+  }
+  else {
   if (acc>=0.9 && !seen_people[this->current_person]){
     //We assume the classification is correct.
     seen_people[this->current_person] = true;
@@ -105,6 +118,7 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
       }
     }
   }
+}
   return true;
 }
 
@@ -250,8 +264,7 @@ bool ErlTask2AlgNode::action_gotoIDLE(){
     }
   } else return false;
 }
-bool ErlTask2AlgNode::action_gotodoor(){
-  std::string POI = this->config_.entrance_name;
+bool ErlTask2AlgNode::action_gotodoor(std::string &POI){
   static bool is_poi_sent = false;
   //first execution : send the poi.
   if (!is_poi_sent){
@@ -320,6 +333,7 @@ bool ErlTask2AlgNode::action_wait_leave(){
   }
 }
 bool ErlTask2AlgNode::action_room(){
+   static bool is_sentence_said = false;
     switch(this->current_person){
       case Deliman:
         return (this->action_say_sentence("Please deliver the breakfast on the kitchen table"));
@@ -328,13 +342,22 @@ bool ErlTask2AlgNode::action_room(){
         return (this->action_say_sentence("Please deliver the mail on the kitchen table"));
         break;
       case Kimble:
-        return (this->action_wait_leave());
+        if (is_sentence_said){
+          if (this->action_wait_leave()){
+            is_sentence_said = false;
+            return true;
+          }
+        }else {
+          if (this->action_say_sentence("We have arrived at the bedroom")){
+            is_sentence_said = true;
+          }
+        }
         break;
       default:
-
         return true;
         break;
  }
+    return false;
 }
 
 bool ErlTask2AlgNode::action_algorithm(){
@@ -352,7 +375,7 @@ bool ErlTask2AlgNode::action_algorithm(){
           break;
         case act_gotodoor:
           ROS_INFO ("[TASK2]:Going to open the door");
-          if (this->action_gotodoor()){
+          if (this->action_gotodoor( this->config_.entrance_name)){
             this->t2_a_s = act_opendoor;
           }
           else {
@@ -403,18 +426,26 @@ bool ErlTask2AlgNode::action_algorithm(){
             ROS_INFO ("[TASK2]:Requesting to follow");
             if (this->action_say_sentence("Please follow me to the door")){
               this->t2_a_s = act_returndoor;
-              //TODO wait for a certain time.
             }
             else this->t2_a_s = act_askfollowdoor;
             break;
         case act_returndoor:
           ROS_INFO ("[TASK2]:Going to the door");
-          if (this->action_gotodoor()){
+          if (this->action_gotodoor( this->config_.farewell_name)){
+            this->t2_a_s = act_saygoodbye;
+          }
+          else {
+            this->t2_a_s = act_returndoor;
+          }
+          break;
+        case act_saygoodbye:
+          ROS_INFO ("[TASK2]:Going to the door");
+          if (this->action_say_sentence("Here is the door. Goodbye!")){
             this->t2_a_s = act_greet;
             return_value = true;
           }
           else {
-            this->t2_a_s = act_returndoor;
+            this->t2_a_s = act_saygoodbye;
           }
           break;
 
