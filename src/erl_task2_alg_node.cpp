@@ -129,10 +129,7 @@ bool ErlTask2AlgNode::labelToPerson (const std::string & label){
   } else if (label == this->config_.person_kimble){
     this->current_person = Kimble;
     return true;
-  } /*else if (label == this->config_.person_annie){
-    this->current_person = Annie;
-    return true;
-  }*/ else if (label == this->config_.person_deliman){
+  } else if (label == this->config_.person_deliman){
     this->current_person = Deliman;
     return true;
   } else if (label == this->config_.person_postman) {
@@ -148,8 +145,6 @@ std::string ErlTask2AlgNode::currentPersonStr (){
     return this->config_.person_unknown;
   } else if (this->current_person == Kimble){
     return this->config_.person_kimble;
-  } else if (this->current_person == Annie){
-    return this->config_.person_annie;
   }else if (this->current_person == Deliman){
     return this->config_.person_deliman;
   }else if (this->current_person == Postman){
@@ -576,7 +571,6 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
       ROS_INFO ("[TASK2] Person not valid!");
     }
     config.start_actions_for_person = false;
-
   }
   this->config_=config;
   this->alg_.unlock();
