@@ -123,7 +123,7 @@ bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const floa
 }
 
 bool ErlTask2AlgNode::labelToPerson (const std::string & label){
-  if (label==this->config_.person_unknown or label==this->config_.person_annie){
+  if (label==this->config_.person_unknown){
     this->current_person = Unknown;
     return true;
   } else if (label == this->config_.person_kimble){
