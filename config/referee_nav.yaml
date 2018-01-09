@@ -1,0 +1,40 @@
+rate_hz: 10.0
+
+mb_max_retries: 5
+mb_feedback_watchdog_time_s: 20.0
+mb_enable_watchdog: True
+mb_timeout_s: 10.0
+mb_enable_timeout: False
+mb_frame_id: "/map"
+mb_enabled: True
+mb_cancel_prev: True
+
+poi_max_retries: 5
+poi_feedback_watchdog_time_s: 50.0
+poi_enable_watchdog: True
+poi_timeout_s: 10.0
+poi_enable_timeout: False
+poi_enabled: True
+
+wp_max_retries: 5
+wp_feedback_watchdog_time_s: 20.0
+wp_enable_watchdog: True
+wp_timeout_s: 10.0
+wp_enable_timeout: False
+wp_enabled: True
+
+odom_watchdog_time_s: 1.0 
+
+tf_timeout_time_s: 5.0 
+
+cm_max_retries: 1.0 
+cm_enable_auto_clear: False
+cm_auto_clear_rate_hz: 0.1
+cm_enabled: True
+
+map_max_retries: 1
+map_enabled: True
+
+op_mode_max_retries: 1
+op_mode_enabled: True
+

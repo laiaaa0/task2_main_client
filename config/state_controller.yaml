@@ -1,0 +1,10 @@
+poi: "home"
+
+rate_hz: 50.0
+
+end_prepare_max_retries: 1
+end_prepare_enabled: True
+
+end_execute_max_retries: 1
+end_execute_enabled: True
+

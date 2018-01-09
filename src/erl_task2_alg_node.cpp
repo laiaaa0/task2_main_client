@@ -2,12 +2,12 @@
 
 ErlTask2AlgNode::ErlTask2AlgNode(void) :
   algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>(),
-    classifier_module("classifier"),
-    tts("tts_module"),
-    nav_module("nav_module"),
-    devices_module("devices_module"),
-    log_module("log_module"),
-    referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee")
+    classifier_module("classifier",ros::this_node::getName()),
+    tts("tts_module",ros::this_node::getName()),
+    nav_module("nav_module",ros::this_node::getName()),
+    devices_module("devices_module",ros::this_node::getName()),
+    log_module("log_module",ros::this_node::getName()),
+    referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee",ros::this_node::getName())
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
