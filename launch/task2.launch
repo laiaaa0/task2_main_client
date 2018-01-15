@@ -115,17 +115,16 @@
 
       <remap from="~/classifier/classify_person"
                to="/erl_person_classifier/classify_person"/>
-      <remap from="~/classifier/is_trained_model"
-               to="/erl_person_classifier/is_trained_model"/>
-      <remap from="~/classifier/train_classifier"
-               to="/erl_person_classifier/train_classifier"/>
   </node>
 
   <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
 <!--     <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image"/> -->
 <!--     <remap from ="erl_person_classifier/front_door_camera" to="/usb_cam/image_raw"/> -->
       <remap from ="erl_person_classifier/front_door_camera" to="/usb_cam/image_raw"/>
-      <param name="base_path" type="string" value="$(arg base_path)" />
+      <param name="cascade_upper_file" type="string" value="/root/nen_ws/code/erl_person_classifier/xml_files/haarcascade_mcs_upperbody.xml" />
+      <param name="cascade_face_file" type="string" value="/root/nen_ws/code/erl_person_classifier/xml_files/haarcascade_frontalface_alt.xml" />
+      <param name="known_faces_path" type="string" value="/root/nen_ws/code/erl_person_classifier/person_faces/known_people/" />
+      <param name="debug_mode" type="bool" value="False" />
   </node>
 
    <!-- launch dynamic reconfigure -->
