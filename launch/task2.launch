@@ -18,6 +18,7 @@
     <arg name="rosbag_path" value="$(arg rosbag_path)" />
   </include>
 
+  <include file="$(find image_diff)/launch/image_diff.launch"/>
 
   <node pkg="task2_client"
  	type="task2_client"
@@ -115,6 +116,23 @@
 
       <remap from="~/classifier/classify_person"
                to="/erl_person_classifier/classify_person"/>
+
+      <!-- image diff module -->
+      <remap from="~/image_diff_module/set_image"
+               to="/tiago/image_diff/set_image"/>
+      <remap from="~/image_diff_module/change"
+               to="/tiago/image_diff/change"/>
+
+      <rosparam file="$(find nen_modules)/config/image_diff_module_default.yaml" command="load" ns="image_diff_module" />
+
+      <!-- head module -->
+      <remap from="~/head_module/move_head"
+               to="/head_controller/follow_joint_trajectory"/>
+      <remap from="~/head_module/point_head"
+               to="/head_controller/point_head_action"/>
+
+      <rosparam file="$(find task2_client)/config/head.yaml" command="load" ns="head_module" />
+
   </node>
 
   <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">

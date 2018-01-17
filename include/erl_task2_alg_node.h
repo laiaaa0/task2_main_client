@@ -31,7 +31,9 @@
 #include <erl_classification_modules/person_classification_module.h>
 #include <tiago_modules/tts_module.h>
 #include <tiago_modules/nav_module.h>
+#include <tiago_modules/head_module.h>
 #include "log_modules/log_module.h"
+#include <nen_modules/image_diff_module.h>
 #include <task_state_controller/task_state_controller.h>
 #include <devices_manager/devices_manager.h>
 #include <time.h>
@@ -65,6 +67,13 @@ typedef enum {
     act_askfollowdoor, // Ask the visitor to follow the robot to the door
     act_returndoor, // Return to the door
     act_saygoodbye} task2_act_states;
+
+typedef enum {
+  kimble_reach_bedroom,
+  kimble_go_outside,
+  kimble_move_head,
+  kimble_wait_leave
+} task2_kimble_states;
 
 typedef enum {Deliman, Postman, Kimble, Unknown} Person;
 
@@ -102,12 +111,16 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     CPersonClassificationModule classifier_module;
     //Text to speech module
     CTTSModule tts;
+    // Head module
+    CHeadModule head;
     //Navigation module
     CNavModule nav_module;
     //Referee module
     CTaskStateControllerModule referee;
     //Log module
     CLogModule log_module;
+    // image difference module
+    CImageDiffModule image_diff;
 
     //Auxiliary variables to start task or ring bell from the dynamic_reconfigure
     bool hasCalled;
@@ -126,6 +139,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     //State machines
     T2_MAIN_STATES t2_m_s;
     task2_act_states t2_a_s;
+    task2_kimble_states t2_kimble;
     
     //Auxiliary structures to decide better
     std::vector<bool>seen_people;

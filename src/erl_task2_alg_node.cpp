@@ -4,9 +4,11 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
   algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>(),
     classifier_module("classifier",ros::this_node::getName()),
     tts("tts_module",ros::this_node::getName()),
+    head("head_module",ros::this_node::getName()),
     nav_module("nav_module",ros::this_node::getName()),
     devices_module("devices_module",ros::this_node::getName()),
     log_module("log_module",ros::this_node::getName()),
+    image_diff("image_diff_module",ros::this_node::getName()),
     referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee",ros::this_node::getName())
 {
   //init class attributes if necessary
@@ -52,16 +54,9 @@ void ErlTask2AlgNode::retryOrGetHighest(const float acc){
     this->t2_m_s = T2_CLASSIFY;
   }
   else {
-    //We accept the person with highest accuracy - only if we havent seen it???
       this->t2_m_s = T2_ACT;
-      //if (!seen_people[this->most_probable_person]){ TODO : WHAT IF WE HAVE SEEN HIM.
         this->current_person = this->most_probable_person;
         seen_people[this->current_person] = true;
-
-      //}
-      //else {
-
-      //}
   }
 
 }
@@ -328,7 +323,7 @@ bool ErlTask2AlgNode::action_wait_leave(){
   }
 }
 bool ErlTask2AlgNode::action_room(){
-   static bool is_sentence_said = false;
+    bool return_value=false;
     switch(this->current_person){
       case Deliman:
         return (this->action_say_sentence("Please deliver the breakfast on the kitchen table"));
@@ -337,22 +332,69 @@ bool ErlTask2AlgNode::action_room(){
         return (this->action_say_sentence("Please deliver the mail on the kitchen table"));
         break;
       case Kimble:
-        if (is_sentence_said){
-          if (this->action_wait_leave()){
-            is_sentence_said = false;
-            return true;
-          }
-        }else {
-          if (this->action_say_sentence("We have arrived at the bedroom")){
-            is_sentence_said = true;
-          }
+        switch (this->t2_kimble){
+          case kimble_reach_bedroom:
+            if(this->action_say_sentence("We have arrived at the bedroom, I will wait for you outside")){
+              // move to the outside of the room
+              this->current_action_retries=0;
+              this->nav_module.go_to_poi(this->config_.outside_bedroom_name);
+              this->t2_kimble=kimble_go_outside;
+            }
+            else {
+              this->t2_kimble=kimble_reach_bedroom;
+            }
+            break;
+          case kimble_go_outside:
+            if (nav_module.is_finished()){
+              if (nav_module.get_status()==NAV_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
+                this->t2_kimble=kimble_move_head;
+                this->current_action_retries=0;
+                this->head.move_to(0.0,this->config_.tilt_angle);
+              }
+              else {
+                this->current_action_retries++;
+                this->nav_module.go_to_poi(this->config_.outside_bedroom_name);
+                this->t2_kimble=kimble_go_outside;
+              }
+            }
+            else
+              this->t2_kimble=kimble_go_outside;
+            break;
+          case kimble_move_head:
+            if(this->head.is_finished())
+            {
+              if (head.get_status()==HEAD_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
+                this->t2_kimble=kimble_wait_leave;
+                this->current_action_retries=0;
+                this->image_diff.set_reference_image();
+                this->image_diff.clear_change();
+              }
+              else {
+                this->current_action_retries++;
+                this->head.move_to(0.0,this->config_.tilt_angle);
+                this->t2_kimble=kimble_move_head;
+              }
+            }
+            else
+              this->t2_kimble=kimble_move_head;
+            break;
+          case kimble_wait_leave:
+            if(this->image_diff.has_changed() || this->action_wait_leave())
+            {
+              // doctor kimble is living
+              return_value=true;
+              this->t2_kimble=kimble_reach_bedroom;
+            }
+            else
+              this->t2_kimble=kimble_wait_leave;
+            break;
         }
         break;
       default:
         return true;
         break;
- }
-    return false;
+    }
+    return return_value;
 }
 
 bool ErlTask2AlgNode::action_algorithm(){
@@ -401,25 +443,12 @@ bool ErlTask2AlgNode::action_algorithm(){
         case act_actionroom:
           ROS_INFO ("[TASK2]:Doing the action in the room");
           if (this->action_room()){
-            this->t2_a_s = act_wait;
-          }
-          break;
-        case act_wait:
-          ROS_INFO ("[TASK2]:Waiting for %d seconds in the room: elapsed:%.f ",this->config_.waiting_time, difftime(time(NULL),waitingTime));
-          if (this->isWaiting){
-            if (difftime(time(NULL),waitingTime)>=this->config_.waiting_time){
-              this->isWaiting = false;
-              this->t2_a_s = act_askfollowdoor;
-            }
-          } else {
-            waitingTime = time(NULL);
-            this->isWaiting = true;
-            this->t2_a_s = act_wait;
+            this->t2_a_s = act_askfollowdoor;
           }
           break;
         case act_askfollowdoor:
             ROS_INFO ("[TASK2]:Requesting to follow");
-            if (this->action_say_sentence("Please follow me to the door")){
+            if (this->action_say_sentence("You are leaving, please let me walk with you")){
               this->t2_a_s = act_returndoor;
             }
             else this->t2_a_s = act_askfollowdoor;

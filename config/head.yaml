@@ -1,0 +1,20 @@
+rate_hz: 1.0
+
+move_max_retries: 1
+move_feedback_watchdog_time_s: 10.0
+move_enable_watchdog: True
+move_timeout_s: 10.0
+move_enable_timeout: True
+move_default_duration: 1.0
+move_enabled: True
+
+point_max_retries: 1
+point_feedback_watchdog_time_s: 10.0
+point_enable_watchdog: True
+point_timeout_s: 10.0
+point_enable_timeout: True
+point_default_duration: 1.0
+point_max_velocity: 1.0
+point_min_velocity: 0.1
+point_enabled: True
+
