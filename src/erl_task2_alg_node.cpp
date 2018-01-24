@@ -329,7 +329,7 @@ bool ErlTask2AlgNode::action_room(){
         return (this->action_say_sentence("Please deliver the breakfast on the kitchen table"));
         break;
       case Postman:
-        return (this->action_say_sentence("Please deliver the mail on the kitchen table"));
+        return (this->action_say_sentence("Please leave the mail here in the hall "));
         break;
       case Kimble:
         switch (this->t2_kimble){
