@@ -7,7 +7,7 @@ find_package(catkin REQUIRED)
 #                 Add catkin additional components here
 # ********************************************************************
 find_package(catkin REQUIRED COMPONENTS iri_base_algorithm
-erl_classification_modules erl_object_classifier erl_person_classifier tiago_modules devices_manager task_state_controller log_modules)
+erl_classification_modules erl_person_classifier tiago_modules devices_manager task_state_controller log_modules)
 
 find_package(iriutils REQUIRED)
 
@@ -68,7 +68,6 @@ catkin_package(
  CATKIN_DEPENDS
  iri_base_algorithm
  erl_classification_modules
- erl_object_classifier
  erl_person_classifier
  tiago_modules
  devices_manager
