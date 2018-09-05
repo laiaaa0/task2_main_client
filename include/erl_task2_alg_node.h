@@ -35,6 +35,9 @@
 #include <task_state_controller/task_state_controller.h>
 #include <devices_manager/devices_manager.h>
 #include <time.h>
+#include <task2_recognition.h>
+#include <task2_visitor_actions.h>
+
 // [publisher subscriber headers]
 
 // [service client headers]
@@ -53,7 +56,11 @@ typedef enum {
     T2_END} TASK2_MAIN_STATES;
 
 
-typedef enum {Deliman, Postman, Kimble, Plumber, Undefined} Person;
+
+#ifndef _PERSON_DEFINITION_
+#define _PERSON_DEFINITION_
+ typedef enum {Deliman, Postman, Kimble, Plumber, Undefined} Person;
+#endif
 
 /**
  * \brief IRI ROS Specific Algorithm Class
