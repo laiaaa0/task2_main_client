@@ -28,12 +28,10 @@
 #include <iri_base_algorithm/iri_base_algorithm.h>
 #include "erl_task2_alg.h"
 
-#include <erl_classification_modules/person_classification_module.h>
 #include <tiago_modules/tts_module.h>
 #include <tiago_modules/nav_module.h>
 #include <tiago_modules/head_module.h>
 #include "log_modules/log_module.h"
-#include <nen_modules/image_diff_module.h>
 #include <task_state_controller/task_state_controller.h>
 #include <devices_manager/devices_manager.h>
 #include <time.h>
@@ -55,26 +53,6 @@ typedef enum {
     T2_END} TASK2_MAIN_STATES;
 
 
-
-typedef enum {
-    act_greet, // Say hello to the visitor.
-    act_gotodoor, // Move to the door
-    act_opendoor, // Ask the visitor to open the door
-    act_askfollow, // Ask the visitor to follow
-    act_navigate,  // Navigate to the room where the action will take place
-    act_actionroom, // Do the action in the room (e.g:Ask to leave breakfast on table)
-    act_wait, // Wait for some seconds for the action to be completed
-    act_askfollowdoor, // Ask the visitor to follow the robot to the door
-    act_returndoor, // Return to the door
-    act_saygoodbye} task2_act_states;
-
-typedef enum {
-  kimble_reach_bedroom,
-  kimble_go_outside,
-  kimble_move_head,
-  kimble_wait_leave
-} task2_kimble_states;
-
 typedef enum {Deliman, Postman, Kimble, Plumber, Undefined} Person;
 
 /**
@@ -84,31 +62,12 @@ typedef enum {Deliman, Postman, Kimble, Plumber, Undefined} Person;
 class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>
 {
   private:
-    // [publisher attributes]
 
-    // [subscriber attributes]
-
-    // [service attributes]
-
-    // [client attributes]
-
-    // [action server attributes]
-
-    // [action client attributes]
-
-   /**
-    * \brief config variable
-    *
-    * This variable has all the driver parameters defined in the cfg config file.
-    * Is updated everytime function config_update() is called.
-    */
     Config config_;
 
   //Modules
     //Device manager module (bell)
     CDevicesManagerModule devices_module;
-    //Person classifier module
-    CPersonClassificationModule classifier_module;
     //Text to speech module
     CTTSModule tts;
     // Head module
@@ -119,18 +78,13 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     CTaskStateControllerModule referee;
     //Log module
     CLogModule log_module;
-    // image difference module
-    CImageDiffModule image_diff;
-
     //task2 recognition Module
     CTask2Recognition recognition_module;
+    //task2 action module
+    CTask2VisitorActions task2_actions_module;
 
 
-    //Variables for the delays
-    bool isWaiting;
-    time_t waitingTime;
     Person current_visitor_;
-
     int visitors_counter;
     int visitors_num;
     int classification_retries;
@@ -138,13 +92,17 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
 
     //State machines
     TASK2_MAIN_STATES t2_m_s;
-    task2_act_states t2_a_s;
-    task2_kimble_states t2_kimble;
 
-    //Auxiliary structures to decide better
-    std::vector<bool>seen_people;
-    Person most_probable_person;
-    float highest_accuracy;
+
+
+
+    bool action_greet();
+    bool action_navigate();
+    bool action_say_sentence(const std::string & sentence);
+    bool action_gotoIDLE();
+    bool labelToPerson (const std::string & label);
+
+
   public:
    /**
     * \brief Constructor
@@ -161,21 +119,6 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     * this class.
     */
     ~ErlTask2AlgNode(void);
-
-    bool action_algorithm();
-    bool action_greet();
-    bool action_opendoor();
-    bool action_navigate();
-    bool action_room();
-    bool action_say_sentence(const std::string & sentence);
-    bool action_wait_leave();
-    bool action_gotodoor(std::string & POI);
-    bool action_gotoIDLE();
-
-
-    bool wait_result();
-    bool labelToPerson (const std::string & label);
-    std::string currentPersonStr ();
 
 
   protected:
