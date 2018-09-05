@@ -46,13 +46,13 @@
 
 typedef enum {
     T2_START, // Initialize everything with the referee. Go to idle position.
-    T2_WAIT,  // Wait for the bell to ring
-    T2_ASKLOOK,  // Ask the visitor to look at the camera
-    T2_CLASSIFY, // Call the classifier to know who the visitor is
-    T2_ACT, //Enter the task2_act_states state machine. Do different tasks for each visitor
-    T2_FINISH, // State for when the action is finished.
+    T2_WAIT_BELL,  // Wait for the bell to ring
+    T2_OPENDOOR,  // Ask the visitor to Open the door
+    T2_RECOGNISE, // Call the recognition module to know who the visitor is
+    T2_GREET, // State who the visitor is and greet him.
+    T2_ACTION, // Call the visitor action module. Do different tasks for each visitor
     T2_RETURNIDLE, // State that returns the robot to the idle position. Then, decides if continue waiting for bell or end.
-    T2_END} T2_MAIN_STATES;
+    T2_END} TASK2_MAIN_STATES;
 
 
 
@@ -60,7 +60,7 @@ typedef enum {
     act_greet, // Say hello to the visitor.
     act_gotodoor, // Move to the door
     act_opendoor, // Ask the visitor to open the door
-    act_askfollow, // Ask the visitor to follow 
+    act_askfollow, // Ask the visitor to follow
     act_navigate,  // Navigate to the room where the action will take place
     act_actionroom, // Do the action in the room (e.g:Ask to leave breakfast on table)
     act_wait, // Wait for some seconds for the action to be completed
@@ -75,7 +75,7 @@ typedef enum {
   kimble_wait_leave
 } task2_kimble_states;
 
-typedef enum {Deliman, Postman, Kimble, Unknown} Person;
+typedef enum {Deliman, Postman, Kimble, Plumber, Undefined} Person;
 
 /**
  * \brief IRI ROS Specific Algorithm Class
@@ -103,7 +103,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     * Is updated everytime function config_update() is called.
     */
     Config config_;
-  
+
   //Modules
     //Device manager module (bell)
     CDevicesManagerModule devices_module;
@@ -122,25 +122,25 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     // image difference module
     CImageDiffModule image_diff;
 
-    //Auxiliary variables to start task or ring bell from the dynamic_reconfigure
-    bool hasCalled;
-    bool startTask;
-    
+    //task2 recognition Module
+    CTask2Recognition recognition_module;
+
+
     //Variables for the delays
     bool isWaiting;
     time_t waitingTime;
-    Person current_person;
+    Person current_visitor_;
 
     int visitors_counter;
     int visitors_num;
     int classification_retries;
     int current_action_retries;
-    
+
     //State machines
-    T2_MAIN_STATES t2_m_s;
+    TASK2_MAIN_STATES t2_m_s;
     task2_act_states t2_a_s;
     task2_kimble_states t2_kimble;
-    
+
     //Auxiliary structures to decide better
     std::vector<bool>seen_people;
     Person most_probable_person;
@@ -171,10 +171,8 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool action_wait_leave();
     bool action_gotodoor(std::string & POI);
     bool action_gotoIDLE();
-    bool chooseIfCorrectPerson (const std::string & label,const float acc);
 
 
-    void retryOrGetHighest(const float acc);
     bool wait_result();
     bool labelToPerson (const std::string & label);
     std::string currentPersonStr ();

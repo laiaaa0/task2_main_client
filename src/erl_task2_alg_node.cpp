@@ -9,14 +9,15 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     devices_module("devices_module",ros::this_node::getName()),
     log_module("log_module",ros::this_node::getName()),
     image_diff("image_diff_module",ros::this_node::getName()),
+    recognition_module("task2_recognition_module",ros::this_node::getName()),
     referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee",ros::this_node::getName())
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
-    this->hasCalled = false;
     this->t2_m_s =  T2_START;
     this->t2_a_s = act_greet;
-    this->current_person = Unknown;
+
+    this->current_visitor_ = Undefined;
     this->visitors_counter = 0;
     this->isWaiting = false;
     this->classification_retries = 0;
@@ -39,96 +40,19 @@ ErlTask2AlgNode::~ErlTask2AlgNode(void)
 {
   // [free dynamic memory]
 }
-void ErlTask2AlgNode::retryOrGetHighest(const float acc){
-  if (this->classification_retries < this -> config_.max_retries){
-    if (this->classification_retries == 0){
-      this->most_probable_person = this->current_person;
-      this->highest_accuracy = acc;
-    }else {
-      if (acc>this->highest_accuracy){
-        this->most_probable_person = this->current_person;
-        this->highest_accuracy = acc;
-      }
-    }
-    this->classification_retries ++;
-    this->t2_m_s = T2_CLASSIFY;
-  }
-  else {
-      this->t2_m_s = T2_ACT;
-        this->current_person = this->most_probable_person;
-        seen_people[this->current_person] = true;
-  }
-
-}
-bool ErlTask2AlgNode::chooseIfCorrectPerson (const std::string &label,const float acc){
-  if (acc>=0.9 && !seen_people[this->current_person] && this->current_person == Kimble){
-    std::string p2,p3,err2,err3;
-    float acc2,acc3;
-    bool result1 = this->classifier_module.classify_current_person(p2,acc2,err2);
-    bool result2 = this->classifier_module.classify_current_person(p3,acc3,err3);
-    if (result1 && result2 && err2==err3 && err2 == ""){
-      if (p2==p3 && p3 == currentPersonStr()){
-        seen_people[this->current_person] = true;
-        this->t2_m_s = T2_ACT;
-      }
-    }
-  }
-  else {
-  if (acc>=0.9 && !seen_people[this->current_person]){
-    //We assume the classification is correct.
-    seen_people[this->current_person] = true;
-    this->t2_m_s = T2_ACT;
-
-  }
-  else {
-    if (seen_people[this->current_person]){
-      //if the person has been seen, retry.
-      retryOrGetHighest(acc);
-    }
-    else {
-      //if the classification has more than half accuracy, retry only once, and compare
-      if (acc>=0.5){
-        std::string aux_lab, err_;
-        float aux_acc;
-        Person first_person = this->current_person;
-        bool result = this->classifier_module.classify_current_person(aux_lab,aux_acc,err_);
-        if (result and labelToPerson(aux_lab)){
-          if (this->current_person == first_person && aux_acc>=0.5){
-          seen_people[this->current_person] = true;
-          this->t2_m_s = T2_ACT;
-
-          }
-          else {
-            retryOrGetHighest(acc);
-          }
-        }
-        else {
-          retryOrGetHighest(acc);
-        }
-
-
-      }
-      else {
-        retryOrGetHighest(acc);
-      }
-    }
-  }
-}
-  return true;
-}
 
 bool ErlTask2AlgNode::labelToPerson (const std::string & label){
   if (label==this->config_.person_unknown){
-    this->current_person = Unknown;
+    this->current_visitor_ = Unknown;
     return true;
   } else if (label == this->config_.person_kimble){
-    this->current_person = Kimble;
+    this->current_visitor_ = Kimble;
     return true;
   } else if (label == this->config_.person_deliman){
-    this->current_person = Deliman;
+    this->current_visitor_ = Deliman;
     return true;
   } else if (label == this->config_.person_postman) {
-    this->current_person = Postman;
+    this->current_visitor_ = Postman;
     return true;
   }
   return false;
@@ -136,13 +60,13 @@ bool ErlTask2AlgNode::labelToPerson (const std::string & label){
 
 
 std::string ErlTask2AlgNode::currentPersonStr (){
-  if (this->current_person==Unknown){
+  if (this->current_visitor_==Unknown){
     return this->config_.person_unknown;
-  } else if (this->current_person == Kimble){
+  } else if (this->current_visitor_ == Kimble){
     return this->config_.person_kimble;
-  }else if (this->current_person == Deliman){
+  }else if (this->current_visitor_ == Deliman){
     return this->config_.person_deliman;
-  }else if (this->current_person == Postman){
+  }else if (this->current_visitor_ == Postman){
     return this->config_.person_postman;
   }
   else return "";
@@ -153,7 +77,7 @@ bool ErlTask2AlgNode::action_greet(){
   static bool is_sentence_sent = false;
   std::string sentence;
   if (!is_sentence_sent){
-  switch (this->current_person){
+  switch (this->current_visitor_){
     case Deliman:
       sentence = "Hello, I am coming to get the breakfast";
       break;
@@ -165,7 +89,7 @@ bool ErlTask2AlgNode::action_greet(){
       break;
     default:
       sentence = "Sorry, I don't know you. I cannot open the door";
-      this->current_person = Unknown;
+      this->current_visitor_ = Unknown;
       break;
   }
     this->log_module.start_logging_audio();
@@ -181,7 +105,7 @@ bool ErlTask2AlgNode::action_greet(){
 
     }
     else {
-      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+      ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying");
       is_sentence_sent  = false;
       this->current_action_retries ++;
       return false;
@@ -196,7 +120,7 @@ bool ErlTask2AlgNode::action_navigate(){
   static bool is_poi_sent = false;
   if (!is_poi_sent){
     nav_module.costmaps_clear();
-    switch(this->current_person){
+    switch(this->current_visitor_){
       case Deliman:
         POI = this->config_.kitchen_name;
         break;
@@ -324,7 +248,7 @@ bool ErlTask2AlgNode::action_wait_leave(){
 }
 bool ErlTask2AlgNode::action_room(){
     bool return_value=false;
-    switch(this->current_person){
+    switch(this->current_visitor_){
       case Deliman:
         return (this->action_say_sentence("Please deliver the breakfast on the kitchen table"));
         break;
@@ -404,7 +328,7 @@ bool ErlTask2AlgNode::action_algorithm(){
           ROS_INFO ("[TASK2]:Greeting the visitor");
           if (this->action_greet()){
             this->t2_a_s = act_gotodoor;
-            if (this->current_person == Unknown) {
+            if (this->current_visitor_ == Unknown) {
               this->t2_a_s =  act_greet;
               this->t2_m_s = T2_FINISH;
             }
@@ -486,63 +410,68 @@ void ErlTask2AlgNode::mainNodeThread(void)
   std::string error_msg;
   bool result;
   switch (this->t2_m_s){
-    case T2_START:
 
+    case T2_START:
       ROS_INFO("[TASK2] Wait start");
-      if(this->referee.execute() or (this->startTask)){
-        this->startTask = false;
-       this->t2_m_s=T2_WAIT;
-       this->log_module.start_data_logging();
+      if(this->referee.execute() or (this->config_.start_task)){
+        this->config_.start_task = false;
+        this->t2_m_s=T2_WAIT_BELL;
+        this->log_module.start_data_logging();
       }
       else
         this->t2_m_s=T2_START;
       break;
-    case T2_WAIT:
-      if (devices_module.listen_bell() or (this->hasCalled)){
-            this->t2_m_s = T2_ASKLOOK;
-            this->hasCalled = false;
+
+
+    case T2_WAIT_BELL:
+      if (devices_module.listen_bell() or (this->config_.ring_bell)){
+            this->t2_m_s = T2_OPENDOOR;
+            this->config_.ring_bell = false;
             this->log_module.log_command("ring_bell");
             this->log_module.start_logging_images_front_door();
       } else {
-            this-> t2_m_s = T2_WAIT;
+            this-> t2_m_s = T2_WAIT_BELL;
       }
       break;
-    case T2_ASKLOOK:
-        ROS_INFO ("[TASK2]:Requesting to look at camera");
-        if (this->action_say_sentence("Please look at the camera")){
-              this->t2_m_s = T2_CLASSIFY;
+
+
+    case T2_OPENDOOR:
+        ROS_INFO ("[TASK2]:Requesting to open door");
+        if (this->action_say_sentence("Please open the door")){
+              this->t2_m_s = T2_RECOGNISE;
+              recognition_module.StartRecognition();
         }
-        else this->t2_m_s = T2_ASKLOOK;
+        else this->t2_m_s = T2_OPENDOOR;
         break;
-    case T2_CLASSIFY:
-      result = this->classifier_module.classify_current_person(label,acc,error_msg);
-      if (result) {
-        ROS_INFO ("[TASK2]:Successful classifier module->classify_current_person function call");
-        ROS_INFO ("[TASK2]:Error : %s\n",error_msg.c_str());
-        ROS_INFO ("[TASK2]:Label : %s\n",label.c_str());
-        ROS_INFO ("[TASK2]:Accuracy : %f\n",acc);
-        if (error_msg == "" || this->classification_retries > this->config_.max_retries){
-        if (labelToPerson(label)){
-          chooseIfCorrectPerson (label,acc);
-          if (this->t2_m_s == T2_ACT){
-            this->log_module.log_visitor(currentPersonStr());
-            this->log_module.stop_logging_images_front_door();
-            this->classification_retries = 0;
-          }
-        }
+
+
+    case T2_RECOGNISE:
+        if (recognition_module.is_finished()){
+            this->current_visitor_ = recognition_module.GetCurrentPerson();
+            this->t2_m_s = T2_GREET;
         }
         else {
-          this->t2_m_s = T2_ASKLOOK;
-          this->classification_retries++;
+            this->t2_m_s = T2_RECOGNISE;
         }
+      break;
 
+    case T2_GREET:
+        if (this->action_greet()){
+              this->t2_m_s = T2_ACT;
+              //task2_action_module.StartAction(this->current_visitor_);
+              //TODO : CREATE ACTION MODULE
+        }
+        else this->t2_m_s = T2_GREET;
+        break;
+    case T2_ACT:/*
+      if (task2_action_module.is_finished()) {
+          this->t2_m_s = T2_RETURNIDLE;
       }
-      break;
-    case T2_ACT:
-      if (this->action_algorithm()){
-        this->t2_m_s = T2_RETURNIDLE;
-      }
-      break;
+      else {*/
+          this->t2_m_s = T2_ACT;
+      //}
+          break;
+
     case T2_RETURNIDLE:
       if (this->action_gotoIDLE()){
         this->t2_m_s = T2_FINISH;
@@ -555,7 +484,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
           this->t2_m_s = T2_END;
         }
         else {
-          this->t2_m_s = T2_WAIT;
+          this->t2_m_s = T2_WAIT_BELL;
         }
       break;
     case T2_END:
@@ -585,11 +514,9 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
 
   this->visitors_num = config.visitors_num;
   if (config.start_task){
-     this->startTask = config.start_task;
      this->t2_m_s = T2_START;
      this->t2_a_s = act_greet;
   }
-  this->hasCalled = config.ring_bell;
   if (config.ring_bell) config.ring_bell = false;
   if (config.start_actions_for_person){
     if (this->labelToPerson(config.person)){

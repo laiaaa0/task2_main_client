@@ -112,8 +112,6 @@
       <remap from="~/log_module/command"
                to="/erl_log_base/erl_log_tmb2/command"/>
 
-      <remap from="~/classifier/classify_person"
-               to="/erl_person_classifier/classify_person"/>
 
       <!-- image diff module -->
       <remap from="~/image_diff_module/set_image"
@@ -133,14 +131,6 @@
 
   </node>
 
-  <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
-<!--     <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image"/> -->
-      <remap from ="erl_person_classifier/front_door_camera" to="/usb_cam/image_raw"/>
-      <param name="cascade_upper_file" type="string" value="/root/nen_ws/code/erl_person_classifier/xml_files/haarcascade_mcs_upperbody.xml" />
-      <param name="cascade_face_file" type="string" value="/root/nen_ws/code/erl_person_classifier/xml_files/haarcascade_frontalface_alt.xml" />
-      <param name="known_faces_path" type="string" value="/root/nen_ws/code/erl_person_classifier/person_faces/known_people/" />
-      <param name="debug_mode" type="bool" value="False" />
-  </node>
 
    <!-- launch dynamic reconfigure -->
    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
