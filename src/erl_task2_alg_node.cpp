@@ -13,11 +13,18 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
-    this->t2_m_s =  T2_START;
-
+    this->current_state_ =  T2_WAIT_SERVER_READY;
     this->current_visitor_ = Undefined;
     this->visitors_counter = 0;
-    this->is_waiting_ = false;
+
+
+    if (this->public_node_handle_.getParam("kimble_path", kimble_path_)){
+         ROS_INFO("Kimble path is %s", kimble_path_.c_str());
+    }
+    if (this->public_node_handle_.getParam("postman_path", postman_path_)){
+         ROS_INFO("Postman path is %s", postman_path_.c_str());
+    }
+
 
   // [init publishers]
 
@@ -37,9 +44,9 @@ ErlTask2AlgNode::~ErlTask2AlgNode(void)
   // [free dynamic memory]
 }
 
-bool ErlTask2AlgNode::labelToPerson (const std::string & label){
-  if (label==this->config_.person_unknown){
-    this->current_visitor_ = Unknown;
+bool ErlTask2AlgNode::SetCurrentVisitorFromString (const std::string & label){
+  if (label==this->config_.person_plumber){
+    this->current_visitor_ = Plumber;
     return true;
   } else if (label == this->config_.person_kimble){
     this->current_visitor_ = Kimble;
@@ -54,11 +61,25 @@ bool ErlTask2AlgNode::labelToPerson (const std::string & label){
   return false;
 }
 
+bool PersonToString(const Person & person){
+    switch (person) {
+        case Deliman:
+            return this->config_.person_deliman;
+        case Postman:
+            return this->config_.person_postman;
+        case Plumber:
+            return this->config_.person_plumber;
+        case Kimble:
+            return this->config_.person_kimble;
+        default :
+            return "";
+    }
+    return "";
+}
 
-bool ErlTask2AlgNode::action_greet(){
-  static bool is_sentence_sent = false;
+
+bool ErlTask2AlgNode::ActionGreet(){
   std::string sentence;
-  if (!is_sentence_sent){
   switch (this->current_visitor_){
     case Deliman:
       sentence = "Hello, thanks for bringing the breakfast";
@@ -74,69 +95,11 @@ bool ErlTask2AlgNode::action_greet(){
       this->current_visitor_ = Unknown;
       break;
   }
-    this->log_module.start_logging_audio();
-    tts.say(sentence);
-    is_sentence_sent = true;
-  }
-  if (tts.is_finished()){
-    if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
-      is_sentence_sent  = false;
-      this->current_action_retries = 0;
-        this->log_module.stop_logging_audio();
-      return true;
-
-    }
-    else {
-      ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying");
-      is_sentence_sent  = false;
-      this->current_action_retries ++;
-      return false;
-    }
-
-  }
-  return false;
-}
-bool ErlTask2AlgNode::action_navigate(){
-
-  std::string POI;
-  static bool is_poi_sent = false;
-  if (!is_poi_sent){
-    nav_module.costmaps_clear();
-    switch(this->current_visitor_){
-      case Deliman:
-        POI = this->config_.kitchen_name;
-        break;
-      case Postman:
-        POI = this->config_.halltable_name;
-        break;
-      case Kimble:
-        POI = this->config_.bedroom_name;
-        break;
-      default:
-        POI = "";
-        break;
-    }
-    nav_module.go_to_poi(POI);
-    is_poi_sent = true;
-  }
-  if (nav_module.is_finished()){
-    if (nav_module.get_status()==NAV_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
-      is_poi_sent  = false;
-      this->current_action_retries = 0;
-      return true;
-
-    }
-    else {
-      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
-      is_poi_sent  = false;
-      this->current_action_retries ++;
-      return false;
-    }
-  }
-  else return false;
+  return this->ActionSaySentence(sentence);
 }
 
-bool ErlTask2AlgNode::action_gotoIDLE(){
+
+bool ErlTask2AlgNode::GoToIdlePosition(){
   std::string POI = this->config_.idle_name;
   static bool is_poi_sent = false;
   //first execution : send the poi.
@@ -150,7 +113,6 @@ bool ErlTask2AlgNode::action_gotoIDLE(){
       is_poi_sent  = false;
       this->current_action_retries = 0;
       return true;
-
     }
     else {
       ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
@@ -158,10 +120,11 @@ bool ErlTask2AlgNode::action_gotoIDLE(){
       this->current_action_retries ++;
       return false;
     }
-  } else return false;
+  }
+  else return false;
 }
 
-bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
+bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
   static bool is_sentence_sent = false;
   if (!is_sentence_sent){
     this->log_module.start_logging_audio();
@@ -175,7 +138,6 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
         this->current_action_retries = 0;
           this->log_module.stop_logging_audio();
         return true;
-
       }
       else {
         ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying");
@@ -183,7 +145,6 @@ bool ErlTask2AlgNode::action_say_sentence(const std::string & sentence){
         this->current_action_retries ++;
         return false;
       }
-
     }
   }
   return false;
@@ -195,86 +156,96 @@ void ErlTask2AlgNode::mainNodeThread(void)
   // [fill msg structures]
 
   std::string label;
-  float acc;
-  std::string error_msg;
   bool result;
-  switch (this->t2_m_s){
+  switch (this->current_state_){
+
+    case T2_WAIT_SERVER_READY:
+        if (this->recognition_module.IsReady()){
+            if (this->recognition_module.StorePostmanAndKimble(this->postman_path_,this->kimble_path_)){
+                this->current_state_ = T2_START;
+            }
+            else {
+                ROS_ERROR("[TASK2] Problem loading person images");
+                this->current_state_ = T2_START;
+            }
+        }
+        break;
 
     case T2_START:
       ROS_INFO("[TASK2] Wait start");
       if(this->referee.execute() or (this->config_.start_task)){
         this->config_.start_task = false;
-        this->t2_m_s=T2_WAIT_BELL;
+        this->current_state_=T2_WAIT_BELL;
         this->log_module.start_data_logging();
       }
       else
-        this->t2_m_s=T2_START;
+        this->current_state_=T2_START;
       break;
-
 
     case T2_WAIT_BELL:
       if (devices_module.listen_bell() or (this->config_.ring_bell)){
-            this->t2_m_s = T2_OPENDOOR;
+            this->current_state_ = T2_OPENDOOR;
             this->config_.ring_bell = false;
-            this->log_module.log_command("ring_bell");
-            this->log_module.start_logging_images_front_door();
       } else {
-            this-> t2_m_s = T2_WAIT_BELL;
+            this-> current_state_ = T2_WAIT_BELL;
       }
       break;
 
 
     case T2_OPENDOOR:
         ROS_INFO ("[TASK2]:Requesting to open door");
-        if (this->action_say_sentence("Please open the door")){
-              this->t2_m_s = T2_RECOGNISE;
+        if (this->ActionSaySentence("Please open the door")){
+              this->current_state_ = T2_RECOGNISE;
               recognition_module.StartRecognition();
         }
-        else this->t2_m_s = T2_OPENDOOR;
+        else this->current_state_ = T2_OPENDOOR;
         break;
 
 
     case T2_RECOGNISE:
         if (recognition_module.is_finished()){
             this->current_visitor_ = recognition_module.GetCurrentPerson();
-            this->t2_m_s = T2_GREET;
+            this->log_module.log_visitor(this->PersonToString(this->current_visitor_))
+            this->current_state_ = T2_GREET;
         }
         else {
-            this->t2_m_s = T2_RECOGNISE;
+            this->current_state_ = T2_RECOGNISE;
         }
       break;
 
     case T2_GREET:
-        if (this->action_greet()){
-              this->t2_m_s = T2_ACT;
+        if (this->ActionGreet()){
+              this->current_state_ = T2_ACT;
               task2_actions_module.StartActions(this->current_visitor_);
         }
-        else this->t2_m_s = T2_GREET;
+        else this->current_state_ = T2_GREET;
         break;
+
     case T2_ACT:
       if (task2_actions_module.is_finished()) {
-          this->t2_m_s = T2_RETURNIDLE;
+          this->current_state_ = T2_RETURNIDLE;
       }
       else {
-          this->t2_m_s = T2_ACT;
+          this->current_state_ = T2_ACT;
       }
       break;
 
     case T2_RETURNIDLE:
-      if (this->action_gotoIDLE()){
-        this->t2_m_s = T2_FINISH;
+      if (this->GoToIdlePosition()){
+        this->current_state_ = T2_FINISH;
       }
       break;
 
     case T2_FINISH:
         this->visitors_counter ++;
         if (this->visitors_counter >= this->visitors_num){
-          this->t2_m_s = T2_END;
+          this->current_state_ = T2_END;
         }
         else {
-          this->t2_m_s = T2_WAIT_BELL;
+          this->current_state_ = T2_WAIT_BELL;
         }
-      break;
+        break;
+
     case T2_END:
       this->log_module.stop_data_logging();
       ROS_INFO ("[TASK2]:Task2 client :: Finish!");
@@ -291,12 +262,22 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
 
   this->visitors_num = config.visitors_num;
   if (config.start_task){
-     this->t2_m_s = T2_START;
+     this->current_state_ = T2_WAIT_SERVER_READY;
      this->t2_a_s = act_greet;
   }
-  if (config.ring_bell) config.ring_bell = false;
+  if (config.ring_bell) {
+      config.ring_bell = false;
+  }
+  if (config.start_recognition){
+      if (this->recognition_module.AreFacesStored()){
+          this->recognition_module.StartRecognition();
+      }
+      else {
+          ROS_ERROR("Can't start recognition if faces are not stored!!");
+      }
+  }
   if (config.start_actions_for_person){
-    if (this->labelToPerson(config.person)){
+    if (this->SetCurrentVisitorFromString(config.person)){
         this->task2_actions_module.StartActions(this->current_visitor_);
     }
     else {
@@ -304,7 +285,7 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
     }
     config.start_actions_for_person = false;
   }
-  this->config_=config;
+  this->config_ = config;
   this->alg_.unlock();
 }
 

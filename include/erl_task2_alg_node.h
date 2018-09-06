@@ -46,6 +46,7 @@
 
 
 typedef enum {
+    T2_WAIT_SERVER_READY,
     T2_START, // Initialize everything with the referee. Go to idle position.
     T2_WAIT_BELL,  // Wait for the bell to ring
     T2_OPENDOOR,  // Ask the visitor to Open the door
@@ -98,17 +99,16 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     int current_action_retries;
 
     //State machines
-    TASK2_MAIN_STATES t2_m_s;
+    TASK2_MAIN_STATES current_state_;
 
 
+    std::string kimble_path_, postman_path_;
 
-
-    bool action_greet();
-    bool action_navigate();
-    bool action_say_sentence(const std::string & sentence);
-    bool action_gotoIDLE();
-    bool labelToPerson (const std::string & label);
-
+    bool ActionGreet();
+    bool ActionSaySentence(const std::string & sentence);
+    bool GoToIdlePosition();
+    bool SetCurrentVisitorFromString(const std::string & label);
+    bool PersonToString(const Person & person);
 
   public:
    /**
