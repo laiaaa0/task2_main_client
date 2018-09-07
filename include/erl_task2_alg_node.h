@@ -49,6 +49,7 @@ typedef enum {
     T2_WAIT_SERVER_READY,
     T2_START, // Initialize everything with the referee. Go to idle position.
     T2_WAIT_BELL,  // Wait for the bell to ring
+    T2_GOTO_DOOR,  //Move closer to the door
     T2_OPENDOOR,  // Ask the visitor to Open the door
     T2_RECOGNISE, // Call the recognition module to know who the visitor is
     T2_GREET, // State who the visitor is and greet him.
@@ -107,7 +108,6 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool ActionGreet();
     bool ActionSaySentence(const std::string & sentence);
     bool GoToIdlePosition();
-    bool SetCurrentVisitorFromString(const std::string & label);
     bool PersonToString(const Person & person);
 
   public:

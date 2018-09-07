@@ -44,22 +44,6 @@ ErlTask2AlgNode::~ErlTask2AlgNode(void)
   // [free dynamic memory]
 }
 
-bool ErlTask2AlgNode::SetCurrentVisitorFromString (const std::string & label){
-  if (label==this->config_.person_plumber){
-    this->current_visitor_ = Plumber;
-    return true;
-  } else if (label == this->config_.person_kimble){
-    this->current_visitor_ = Kimble;
-    return true;
-  } else if (label == this->config_.person_deliman){
-    this->current_visitor_ = Deliman;
-    return true;
-  } else if (label == this->config_.person_postman) {
-    this->current_visitor_ = Postman;
-    return true;
-  }
-  return false;
-}
 
 bool PersonToString(const Person & person){
     switch (person) {
@@ -99,8 +83,7 @@ bool ErlTask2AlgNode::ActionGreet(){
 }
 
 
-bool ErlTask2AlgNode::GoToIdlePosition(){
-  std::string POI = this->config_.idle_name;
+bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
   static bool is_poi_sent = false;
   //first execution : send the poi.
   if (!is_poi_sent){
@@ -184,13 +167,21 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
     case T2_WAIT_BELL:
       if (devices_module.listen_bell() or (this->config_.ring_bell)){
-            this->current_state_ = T2_OPENDOOR;
+            this->current_state_ = T2_GOTO_DOOR;
             this->config_.ring_bell = false;
       } else {
             this-> current_state_ = T2_WAIT_BELL;
       }
       break;
 
+    case T2_GOTO_DOOR:
+        if (this->ActionNavigateToPOI(this->config_.door_poi){
+            this->current_state_ = T2_OPENDOOR;
+        }
+        else {
+            this->current_state_ = T2_GOTO_DOOR
+        }
+        break;
 
     case T2_OPENDOOR:
         ROS_INFO ("[TASK2]:Requesting to open door");
@@ -231,7 +222,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_RETURNIDLE:
-      if (this->GoToIdlePosition()){
+      if (this->ActionNavigateToPOI(this->config_.idle_name)){
         this->current_state_ = T2_FINISH;
       }
       break;
@@ -268,21 +259,8 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
   if (config.ring_bell) {
       config.ring_bell = false;
   }
-  if (config.start_recognition){
-      if (this->recognition_module.AreFacesStored()){
-          this->recognition_module.StartRecognition();
-      }
-      else {
-          ROS_ERROR("Can't start recognition if faces are not stored!!");
-      }
-  }
-  if (config.start_actions_for_person){
-    if (this->SetCurrentVisitorFromString(config.person)){
-        this->task2_actions_module.StartActions(this->current_visitor_);
-    }
-    else {
-      ROS_INFO ("[TASK2] Person not valid!");
-    }
+
+
     config.start_actions_for_person = false;
   }
   this->config_ = config;
