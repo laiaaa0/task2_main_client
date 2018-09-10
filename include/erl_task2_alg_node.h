@@ -31,9 +31,11 @@
 #include <tiago_modules/tts_module.h>
 #include <tiago_modules/nav_module.h>
 #include <tiago_modules/head_module.h>
-#include "log_modules/log_module.h"
+/*
+#include <log_modules/log_module.h>
 #include <task_state_controller/task_state_controller.h>
 #include <devices_manager/devices_manager.h>
+*/
 #include <time.h>
 #include <task2_recognition.h>
 #include <task2_visitor_actions.h>
@@ -55,6 +57,7 @@ typedef enum {
     T2_GREET, // State who the visitor is and greet him.
     T2_ACTION, // Call the visitor action module. Do different tasks for each visitor
     T2_RETURNIDLE, // State that returns the robot to the idle position. Then, decides if continue waiting for bell or end.
+    T2_FINISH,
     T2_END} TASK2_MAIN_STATES;
 
 
@@ -76,7 +79,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
 
   //Modules
     //Device manager module (bell)
-    CDevicesManagerModule devices_module;
+    //CDevicesManagerModule devices_module;
     //Text to speech module
     CTTSModule tts;
     // Head module
@@ -84,9 +87,9 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     //Navigation module
     CNavModule nav_module;
     //Referee module
-    CTaskStateControllerModule referee;
+    //CTaskStateControllerModule referee;
     //Log module
-    CLogModule log_module;
+    //CLogModule log_module;
     //task2 recognition Module
     CTask2Recognition recognition_module;
     //task2 action module
@@ -108,8 +111,8 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     bool ActionGreet();
     bool ActionSaySentence(const std::string & sentence);
     bool GoToIdlePosition();
-    bool PersonToString(const Person & person);
-
+    std::string PersonToString(const Person & person);
+    bool ActionNavigateToPOI(std::string & POI);
   public:
    /**
     * \brief Constructor

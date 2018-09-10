@@ -4,11 +4,12 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
   algorithm_base::IriBaseAlgorithm<ErlTask2Algorithm>(),
     tts("tts_module",ros::this_node::getName()),
     nav_module("nav_module",ros::this_node::getName()),
-    devices_module("devices_module",ros::this_node::getName()),
-    log_module("log_module",ros::this_node::getName()),
+    head("head_module", ros::this_node::getName()),
+    //devices_module("devices_module",ros::this_node::getName()),
+    //log_module("log_module",ros::this_node::getName()),
     recognition_module("task2_recognition_module",ros::this_node::getName()),
     //referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee",ros::this_node::getName()),
-    referee("referee","task2_referee",ros::this_node::getName()),
+    //referee("referee","task2_referee",ros::this_node::getName()),
     task2_actions_module("visitor_actions", ros::this_node::getName())
 {
   //init class attributes if necessary
@@ -45,7 +46,7 @@ ErlTask2AlgNode::~ErlTask2AlgNode(void)
 }
 
 
-bool PersonToString(const Person & person){
+std::string ErlTask2AlgNode::PersonToString(const Person & person){
     switch (person) {
         case Deliman:
             return this->config_.person_deliman;
@@ -76,7 +77,9 @@ bool ErlTask2AlgNode::ActionGreet(){
       break;
     case Plumber:
       sentence = "Hello plumber";
-      this->current_visitor_ = Unknown;
+      break;
+    case Undefined:
+      sentence = "I was not able to recognise you";
       break;
   }
   return this->ActionSaySentence(sentence);
@@ -110,7 +113,7 @@ bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
 bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
   static bool is_sentence_sent = false;
   if (!is_sentence_sent){
-    this->log_module.start_logging_audio();
+    //TODO this->log_module.start_logging_audio();
     tts.say(sentence);
     is_sentence_sent = true;
   }
@@ -119,7 +122,7 @@ bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
       if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
         is_sentence_sent  = false;
         this->current_action_retries = 0;
-          this->log_module.stop_logging_audio();
+          //this->log_module.stop_logging_audio();
         return true;
       }
       else {
@@ -137,9 +140,6 @@ bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
 void ErlTask2AlgNode::mainNodeThread(void)
 {
   // [fill msg structures]
-
-  std::string label;
-  bool result;
   switch (this->current_state_){
 
     case T2_WAIT_SERVER_READY:
@@ -156,17 +156,19 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
     case T2_START:
       ROS_INFO("[TASK2] Wait start");
-      if(this->referee.execute() or (this->config_.start_task)){
+     // if(this->referee.execute() or (this->config_.start_task)){
+      if(this->config_.start_task){
         this->config_.start_task = false;
         this->current_state_=T2_WAIT_BELL;
-        this->log_module.start_data_logging();
+        //this->log_module.start_data_logging();
       }
       else
         this->current_state_=T2_START;
       break;
 
     case T2_WAIT_BELL:
-      if (devices_module.listen_bell() or (this->config_.ring_bell)){
+      //if (devices_module.listen_bell() or (this->config_.ring_bell)){
+      if (this->config_.ring_bell){
             this->current_state_ = T2_GOTO_DOOR;
             this->config_.ring_bell = false;
       } else {
@@ -175,11 +177,11 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_GOTO_DOOR:
-        if (this->ActionNavigateToPOI(this->config_.door_poi){
+        if (this->ActionNavigateToPOI(this->config_.door_poi)){
             this->current_state_ = T2_OPENDOOR;
         }
         else {
-            this->current_state_ = T2_GOTO_DOOR
+            this->current_state_ = T2_GOTO_DOOR;
         }
         break;
 
@@ -196,7 +198,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_RECOGNISE:
         if (recognition_module.is_finished()){
             this->current_visitor_ = recognition_module.GetCurrentPerson();
-            this->log_module.log_visitor(this->PersonToString(this->current_visitor_))
+            //this->log_module.log_visitor(this->PersonToString(this->current_visitor_))
             this->current_state_ = T2_GREET;
         }
         else {
@@ -206,23 +208,23 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
     case T2_GREET:
         if (this->ActionGreet()){
-              this->current_state_ = T2_ACT;
+              this->current_state_ = T2_ACTION;
               task2_actions_module.StartActions(this->current_visitor_);
         }
         else this->current_state_ = T2_GREET;
         break;
 
-    case T2_ACT:
+    case T2_ACTION:
       if (task2_actions_module.is_finished()) {
           this->current_state_ = T2_RETURNIDLE;
       }
       else {
-          this->current_state_ = T2_ACT;
+          this->current_state_ = T2_ACTION;
       }
       break;
 
     case T2_RETURNIDLE:
-      if (this->ActionNavigateToPOI(this->config_.idle_name)){
+      if (this->ActionNavigateToPOI(this->config_.idle_poi)){
         this->current_state_ = T2_FINISH;
       }
       break;
@@ -238,9 +240,9 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
 
     case T2_END:
-      this->log_module.stop_data_logging();
+      //TODO this->log_module.stop_data_logging();
       ROS_INFO ("[TASK2]:Task2 client :: Finish!");
-      this->referee.execution_done();
+      //TODO this->referee.execution_done();
       break;
    }
 
@@ -254,15 +256,13 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
   this->visitors_num = config.visitors_num;
   if (config.start_task){
      this->current_state_ = T2_WAIT_SERVER_READY;
-     this->t2_a_s = act_greet;
   }
   if (config.ring_bell) {
       config.ring_bell = false;
+      this->config_.ring_bell = true;
   }
 
 
-    config.start_actions_for_person = false;
-  }
   this->config_ = config;
   this->alg_.unlock();
 }
