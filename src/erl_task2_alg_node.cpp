@@ -197,9 +197,12 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
     case T2_RECOGNISE:
         if (recognition_module.is_finished()){
-            this->current_visitor_ = recognition_module.GetCurrentPerson();
-            //this->log_module.log_visitor(this->PersonToString(this->current_visitor_))
-            this->current_state_ = T2_GREET;
+	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){
+            	this->current_visitor_ = recognition_module.GetCurrentPerson();
+            	//this->log_module.log_visitor(this->PersonToString(this->current_visitor_))
+            	this->current_state_ = T2_GREET;
+
+	    }
         }
         else {
             this->current_state_ = T2_RECOGNISE;
