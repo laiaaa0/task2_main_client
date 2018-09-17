@@ -5,11 +5,10 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     tts("tts_module",ros::this_node::getName()),
     nav_module("nav_module",ros::this_node::getName()),
     head("head_module", ros::this_node::getName()),
-    //devices_module("devices_module",ros::this_node::getName()),
-    //log_module("log_module",ros::this_node::getName()),
+    devices_module("devices_module",ros::this_node::getName()),
+    log_module("log_module",ros::this_node::getName()),
     recognition_module("task2_recognition_module",ros::this_node::getName()),
-    //referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee",ros::this_node::getName()),
-    //referee("referee","task2_referee",ros::this_node::getName()),
+    referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee",ros::this_node::getName()),
     task2_actions_module("visitor_actions", ros::this_node::getName())
 {
   //init class attributes if necessary
@@ -113,7 +112,7 @@ bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
 bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
   static bool is_sentence_sent = false;
   if (!is_sentence_sent){
-    //TODO this->log_module.start_logging_audio();
+    this->log_module.start_logging_audio();
     tts.say(sentence);
     is_sentence_sent = true;
   }
@@ -122,7 +121,7 @@ bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
       if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
         is_sentence_sent  = false;
         this->current_action_retries = 0;
-          //this->log_module.stop_logging_audio();
+        this->log_module.stop_logging_audio();
         return true;
       }
       else {
@@ -156,19 +155,17 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
     case T2_START:
       ROS_INFO("[TASK2] Wait start");
-     // if(this->referee.execute() or (this->config_.start_task)){
-      if(this->config_.start_task){
-        this->config_.start_task = false;
+      if(this->referee.execute() or (this->config_.start_task)){
+         this->config_.start_task = false;
         this->current_state_=T2_WAIT_BELL;
-        //this->log_module.start_data_logging();
+        this->log_module.start_data_logging();
       }
       else
         this->current_state_=T2_START;
       break;
 
     case T2_WAIT_BELL:
-      //if (devices_module.listen_bell() or (this->config_.ring_bell)){
-      if (this->config_.ring_bell){
+      if (devices_module.listen_bell() or (this->config_.ring_bell)){
             this->current_state_ = T2_GOTO_DOOR;
             this->config_.ring_bell = false;
       } else {
@@ -208,7 +205,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         if (recognition_module.is_finished()){
 	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){
             	this->current_visitor_ = recognition_module.GetCurrentPerson();
-            	//this->log_module.log_visitor(this->PersonToString(this->current_visitor_))
+            	this->log_module.log_visitor(this->PersonToString(this->current_visitor_));
             	this->current_state_ = T2_GREET;
 
 	    }
@@ -252,9 +249,9 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
 
     case T2_END:
-      //TODO this->log_module.stop_data_logging();
+      this->log_module.stop_data_logging();
       ROS_INFO ("[TASK2]:Task2 client :: Finish!");
-      //TODO this->referee.execution_done();
+      this->referee.execution_done();
       break;
    }
 

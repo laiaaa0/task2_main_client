@@ -8,9 +8,9 @@ find_package(catkin REQUIRED)
 # ********************************************************************
 find_package(catkin REQUIRED COMPONENTS iri_base_algorithm
 erl_classification_modules tiago_modules
-#devices_manager
-#task_state_controller
-#log_modules
+devices_manager
+task_state_controller
+log_modules
 task2_recognition
 task2_visitor_actions
 )
@@ -74,8 +74,8 @@ catkin_package(
  iri_base_algorithm
  erl_classification_modules
  tiago_modules
-# devices_manager
-# task_state_controller
+ devices_manager
+ task_state_controller
 # log_modules
 # ********************************************************************
 #      Add system and labrobotica run time dependencies here

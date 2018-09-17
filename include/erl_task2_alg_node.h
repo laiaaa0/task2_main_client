@@ -31,11 +31,11 @@
 #include <tiago_modules/tts_module.h>
 #include <tiago_modules/nav_module.h>
 #include <tiago_modules/head_module.h>
-/*
+
 #include <log_modules/log_module.h>
 #include <task_state_controller/task_state_controller.h>
 #include <devices_manager/devices_manager.h>
-*/
+
 #include <time.h>
 #include <task2_recognition.h>
 #include <task2_visitor_actions.h>
@@ -80,7 +80,7 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
 
   //Modules
     //Device manager module (bell)
-    //CDevicesManagerModule devices_module;
+    CDevicesManagerModule devices_module;
     //Text to speech module
     CTTSModule tts;
     // Head module
@@ -88,9 +88,9 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     //Navigation module
     CNavModule nav_module;
     //Referee module
-    //CTaskStateControllerModule referee;
+    CTaskStateControllerModule referee;
     //Log module
-    //CLogModule log_module;
+    CLogModule log_module;
     //task2 recognition Module
     CTask2Recognition recognition_module;
     //task2 action module
