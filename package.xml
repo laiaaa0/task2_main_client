@@ -48,12 +48,17 @@
   <build_depend>devices_manager</build_depend>
   <build_depend>log_modules</build_depend>
 
+  <build_depend>task2_recognition</build_depend>
+  <build_depend>task2_visitor_actions</build_depend>
+
   <run_depend>iri_base_algorithm</run_depend>
   <run_depend>erl_classification_modules</run_depend>
   <run_depend>tiago_modules</run_depend>
   <run_depend>task_state_controller</run_depend>
   <run_depend>devices_manager</run_depend>
   <run_depend>log_modules</run_depend>
+  <run_depend>task2_recognition</run_depend>
+  <run_depend>task2_visitor_actions</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
