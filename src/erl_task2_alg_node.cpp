@@ -188,13 +188,22 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_OPENDOOR:
         ROS_INFO ("[TASK2]:Requesting to open door");
         if (this->ActionSaySentence("Please open the door")){
-              this->current_state_ = T2_RECOGNISE;
-              recognition_module.StartRecognition();
+              this->current_state_ = T2_LOOKUP;
+              this->head.move_to(this->config_.pan_angle_straight, this->config_.tilt_angle_straight);
         }
         else this->current_state_ = T2_OPENDOOR;
         break;
 
+    case T2_LOOKUP:
+        if (this->head.is_finished()){
+            this->current_state_ = T2_RECOGNISE;
+            recognition_module.StartRecognition();
+        }
+        else {
+            this->current_state_ = T2_LOOKUP;
+        }
 
+        break;
     case T2_RECOGNISE:
         if (recognition_module.is_finished()){
 	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){

@@ -53,6 +53,7 @@ typedef enum {
     T2_WAIT_BELL,  // Wait for the bell to ring
     T2_GOTO_DOOR,  //Move closer to the door
     T2_OPENDOOR,  // Ask the visitor to Open the door
+    T2_LOOKUP,
     T2_RECOGNISE, // Call the recognition module to know who the visitor is
     T2_GREET, // State who the visitor is and greet him.
     T2_ACTION, // Call the visitor action module. Do different tasks for each visitor
