@@ -7,9 +7,9 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     head("head_module", ros::this_node::getName()),
     devices_module("devices_module",ros::this_node::getName()),
     log_module("log_module",ros::this_node::getName()),
-    recognition_module("task2_recognition_module",ros::this_node::getName()),
+    recognition_module("recognition_module",ros::this_node::getName()),
     referee(roah_rsbb_comm_ros::Benchmark::HWV,"task2_referee",ros::this_node::getName()),
-    task2_actions_module("visitor_actions", ros::this_node::getName())
+    task2_actions_module("actions_module", ros::this_node::getName())
 {
   //init class attributes if necessary
   //this->loop_rate_ = 2;//in [Hz]
@@ -142,6 +142,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
   switch (this->current_state_){
 
     case T2_WAIT_SERVER_READY:
+        ROS_INFO("[TASK2] Waiting store people");
         if (this->recognition_module.IsReady()){
             if (this->recognition_module.StorePostmanAndKimble(this->postman_path_,this->kimble_path_)){
                 this->current_state_ = T2_START;
@@ -167,6 +168,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_WAIT_BELL:
       if (devices_module.listen_bell() or (this->config_.ring_bell)){
             this->current_state_ = T2_GOTO_DOOR;
+	    this->log_module.log_command("ring_bell");
             this->config_.ring_bell = false;
       } else {
             this-> current_state_ = T2_WAIT_BELL;
