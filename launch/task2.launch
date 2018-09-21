@@ -1,7 +1,6 @@
 <launch>
-<!-- TODO : REMAP LOGGING FROM RECOGNITION AND ACTION -->
   <!--DEFINE ARGUMENTS-->
-  <arg name = "base_path" default = "/root/nen_ws/code/erl_person_classifier/"/>
+  <arg name = "haarcascade_base_path" default = "/home/pal/iri-lab/iri_ws/src/nen/servers/shirt_color_detection/cfg/haarcascade_frontalface_alt.xml"/>
   <arg name = "rosbag_path" default = "/media/root/F703-CF86/tbm2_00/"/>
   <arg name="action_topic" default="/tiago/echo_action_server/task2_recognise" />
   <arg name="visualize" default="true" />
@@ -9,7 +8,7 @@
   <arg name="postman_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/postman/postman.jpg" />
 
 
-  <!--<include file="$(find audio_capture)/launch/capture.launch"/>-->
+  <include file="$(find audio_capture)/launch/capture.launch"/>
 
   <include file="$(find log_nodes)/launch/erl_log_tmb2.launch">
     <arg name="rosbag_path" value="$(arg rosbag_path)" />
@@ -129,7 +128,7 @@
       <remap from="~/recognition_module/log_module/en_dis_logs"
                    to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
 
-      <rosparam file="$(find iri_task2_tests)/config/task2_tts.yaml" command="load" ns="recognition_module/tts_module" />
+      <rosparam file="$(find task2_client)/config/task2_tts.yaml" command="load" ns="recognition_module/tts_module" />
 
       <!-- ACTIONS module-->
       <remap from="~/actions_module/tts_module/tts" to="/tts" />
@@ -138,7 +137,8 @@
       <remap from="~/actions_module/log_module/en_dis_logs"
                    to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
 
-      <rosparam file="$(find iri_task2_tests)/config/task2_tts.yaml" command="load" ns="actions_module/tts_module" />
+      <rosparam file="$(find task2_client)/config/task2_tts.yaml" command="load" ns="actions_module/tts_module" />
+      <rosparam file="$(find task2_client)/config/task2_play_motion.yaml" command="load" ns="actions_module/play_motion_module" />
 
       <!--navigation remappings-->
            <remap from="~/actions_module/nav_module/move_base"
@@ -158,7 +158,7 @@
            <remap from="~/actions_module/nav_module/move_base_reconf"
                     to="/move_base/PalLocalPlanner/set_parameters"/>
 
-            <rosparam file="$(find iri_task2_tests)/config/task2_nav.yaml" command="load" ns="actions_module/nav_module" />
+            <rosparam file="$(find task2_client)/config/task2_nav.yaml" command="load" ns="actions_module/nav_module" />
 
       <!--Gripper module-->
           <remap from="~/actions_module/gripper_module/gripper_trajectory"
@@ -183,7 +183,7 @@
 
   <include file="$(find shirt_color_detection)/launch/shirt_color_detection.launch">
           <arg name="visualize"  value="false" />
-          <arg name="base_path" value="/home/pal/iri-lab/iri_ws/src/nen/servers/shirt_color_detection/cfg/haarcascade_frontalface_alt.xml" />
+          <arg name="base_path" value="$(arg haarcascade_base_path)" />
   </include>
 
    <!-- launch dynamic reconfigure -->
