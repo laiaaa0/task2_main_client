@@ -6,6 +6,7 @@
   <arg name="visualize" default="true" />
   <arg name="kimble_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/kimble/kimble.jpeg" />
   <arg name="postman_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/postman/postman.jpg" />
+  <arg name="camera_name" default="rear_xtion"/>
 
 
   <include file="$(find audio_capture)/launch/capture.launch"/>
@@ -26,10 +27,10 @@
     <param name="~postman_path" type="string" value="$(arg postman_path)" />
 
 
-    <!-- device (bell) remapping -->
+<!-- device (bell) remapping -->
        <remap from="~/devices_module/bell" to="/roah_rsbb/devices/bell"/>
 
-       <!-- Referee Module -->
+<!-- Referee Module -->
           <remap from="~/task2_referee/end_execute"
                    to="/roah_rsbb/end_execute"/>
           <remap from="~/task2_referee/end_prepare"
@@ -62,13 +63,12 @@
 
           <rosparam file="$(find task2_client)/config/referee_nav.yaml" command="load" ns="task2_referee/nav_module" />
 
-
-  <!-- tts remappings -->
+<!-- TTS MODULE -->
           <remap from="~/tts_module/tts" to="/tts"/>
           <rosparam file="$(find task2_client)/config/tts.yaml" command="load" ns="tts_module" />
 
 
-  <!-- navigation remappings -->
+<!-- NAVIGATION MODULE -->
       <remap from="~/nav_module/move_base"
                to="/move_base"/>
       <remap from="~/nav_module/move_poi"
@@ -88,7 +88,7 @@
 
       <rosparam file="$(find task2_client)/config/nav.yaml" command="load" ns="nav_module" />
 
-      <!--LOGS-->
+<!--LOGS-->
       <!-- Log Order -->
       <remap from="~/log_module/log_orders"
                to="/erl_log_base/erl_log_tmb2/log_orders"/>
@@ -112,14 +112,14 @@
       <remap from="~/log_module/command"
                to="/erl_log_base/erl_log_tmb2/command"/>
 
-      <!-- HEAD module -->
+<!-- HEAD module -->
       <remap from="~/head_module/move_head"
                to="/head_controller/follow_joint_trajectory"/>
       <remap from="~/head_module/point_head"
                to="/head_controller/point_head_action"/>
       <rosparam file="$(find task2_client)/config/head.yaml" command="load" ns="head_module" />
 
-      <!-- RECOGNITION module-->
+<!-- RECOGNITION module-->
       <remap from="~/recognition_module/face_recognition/get_person" to="/tiago/face_recognition_server/get_person" />
       <remap from="~/recognition_module/face_recognition/store_person" to="/tiago/face_recognition_server/store_person_path" />
       <remap from="~/recognition_module/tts_module/tts" to="/tts" />
@@ -130,7 +130,7 @@
 
       <rosparam file="$(find task2_client)/config/task2_tts.yaml" command="load" ns="recognition_module/tts_module" />
 
-      <!-- ACTIONS module-->
+<!-- ACTIONS MODULE-->
       <remap from="~/actions_module/tts_module/tts" to="/tts" />
       <remap from="~/actions_module/play_motion_module/play_motion" to="/play_motion" />
       <remap from="~/actions_module/echo_module/listen" to="$(arg action_topic)" />
@@ -167,12 +167,64 @@
                  to="/gripper_controller/grasp"/>
           <rosparam file="$(find tiago_modules)/config/gripper_module_default.yaml" command="load" ns="gripper_module" />
 
-
-      <remap from="~/actions_module/head_module/point_head" to="/head_controller/point_head_action" />
-      <remap from="~/actions_module/head_module/move_head" to="/head_controller/follow_joint_trajectory" />
+      <!--head module-->
+          <remap from="~/actions_module/head_module/point_head" to="/head_controller/point_head_action" />
+          <remap from="~/actions_module/head_module/move_head" to="/head_controller/follow_joint_trajectory" />
 
       <remap from="~/actions_module/image_diff_module/set_image" to="/tiago/image_diff/set_image" />
       <remap from="~/actions_module/image_diff_module/change" to="/tiago/image_diff/change" />
+
+<!--Move platform -->
+    <remap from="/mobile_base_controller/cmd_vel"
+           to="/key_vel"/>
+<!--GUIDING -->
+        <!-- tts_module -->
+        <remap from="~/guiding/tts/tts"
+                to="/tts"/>
+        <rosparam file="$(find guiding_client)/config/guiding_tts.yaml" command="load" ns="guiding/tts" />
+
+        <!-- head_module -->
+       <remap from="~/guiding/head/move_head"
+                to="/head_controller/follow_joint_trajectory"/>
+       <remap from="~/guiding/head/point_head"
+                to="/head_controller/point_head_action"/>
+       <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="guiding/head" />
+
+       <!-- nav -->
+       <remap from="~/guiding/nav/move_base/"
+                to="/move_base"/>
+       <remap from="~/guiding/nav/move_poi"
+                to="/poi_navigation_server/go_to_poi"/>
+       <remap from="~/guiding/nav/move_waypoint"
+                to="/pal_waypoint/navigate"/>
+       <remap from="~/guiding/nav/odom"
+                to="/mobile_base_controller/odom"/>
+       <remap from="~/guiding/nav/clear_costmaps"
+                to="/move_base/clear_costmaps"/>
+       <remap from="~/guiding/nav/change_map"
+                to="/pal_map_manager/change_map"/>
+       <remap from="~/guiding/nav/set_op_mode"
+                to="/pal_navigation_sm"/>
+       <remap from="~/guiding/nav/move_base_reconf"
+                to="/move_base/PalLocalPlanner/set_parameters"/>
+
+
+       <remap from="~/guiding/nav/palLocalPlanner_reconf"
+                to="/move_base/PalLocalPlanner/set_parameters"/>
+       <rosparam file="$(find guiding_client)/config/guiding_nav.yaml" command="load" ns="guiding/nav" />
+
+       <!-- head_search_module -->
+       <remap from="~/guiding/head_search/head/move_head"
+                to="/head_controller/follow_joint_trajectory"/>
+       <remap from="~/guiding/head_search/head/point_head"
+                to="/head_controller/point_head_action"/>
+       <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="guiding/head_search/head" />
+
+
+       <remap from="~/current_id"
+          to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
+          <remap from="~/guiding/target_pose"
+          to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
 
 
   </node>
@@ -188,5 +240,10 @@
 
    <!-- launch dynamic reconfigure -->
    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
+
+   <include file="$(find spencer_people_tracking_launch)/launch/tracking_single_rgbd_sensor.launch">
+     <arg name="camera_name" value="$(arg camera_name)" />
+     <arg name="dummy_transforms" value="false" />
+   </include>
 
 </launch>
