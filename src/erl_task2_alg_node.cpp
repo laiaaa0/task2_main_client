@@ -166,9 +166,10 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_WAIT_BELL:
+      ROS_INFO("[TASK2] Wait bell");
       if (devices_module.listen_bell() or (this->config_.ring_bell)){
             this->current_state_ = T2_GOTO_DOOR;
-	    this->log_module.log_command("ring_bell");
+	        this->log_module.log_command("ring_bell");
             this->config_.ring_bell = false;
       } else {
             this-> current_state_ = T2_WAIT_BELL;
@@ -176,6 +177,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_GOTO_DOOR:
+        ROS_INFO("[TASK2] Going to door");
         if (this->ActionNavigateToPOI(this->config_.door_poi)){
             this->current_state_ = T2_OPENDOOR;
         }
@@ -242,7 +244,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
     case T2_FINISH:
         this->visitors_counter ++;
-        if (this->visitors_counter >= this->visitors_num){
+        if (this->visitors_counter >= this->config_.visitors_num){
           this->current_state_ = T2_END;
         }
         else {
@@ -263,17 +265,6 @@ void ErlTask2AlgNode::mainNodeThread(void)
 void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
 {
   this->alg_.lock();
-
-  this->visitors_num = config.visitors_num;
-  if (config.start_task){
-     this->current_state_ = T2_WAIT_SERVER_READY;
-  }
-  if (config.ring_bell) {
-      config.ring_bell = false;
-      this->config_.ring_bell = true;
-  }
-
-
   this->config_ = config;
   this->alg_.unlock();
 }
