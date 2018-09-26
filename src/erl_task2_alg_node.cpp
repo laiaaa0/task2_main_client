@@ -16,6 +16,8 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     this->current_state_ =  T2_WAIT_SERVER_READY;
     this->current_visitor_ = Undefined;
     this->visitors_counter = 0;
+    this->is_poi_sent = false;
+    this->is_sentence_sent = false;
 
 
     if (this->public_node_handle_.getParam("kimble_path", kimble_path_)){
@@ -86,22 +88,21 @@ bool ErlTask2AlgNode::ActionGreet(){
 
 
 bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
-  static bool is_poi_sent = false;
   //first execution : send the poi.
-  if (!is_poi_sent){
+  if (!this->is_poi_sent){
     nav_module.costmaps_clear();
     nav_module.go_to_poi(POI);
-    is_poi_sent = true;
+    this->is_poi_sent = true;
   }
   if (nav_module.is_finished()){
     if (nav_module.get_status()==NAV_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
-      is_poi_sent  = false;
+      this->is_poi_sent  = false;
       this->current_action_retries = 0;
       return true;
     }
     else {
       ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
-      is_poi_sent  = false;
+      this->is_poi_sent  = false;
       this->current_action_retries ++;
       return false;
     }
@@ -110,23 +111,22 @@ bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
 }
 
 bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
-  static bool is_sentence_sent = false;
-  if (!is_sentence_sent){
+  if (!this->is_sentence_sent){
     this->log_module.start_logging_audio();
     tts.say(sentence);
-    is_sentence_sent = true;
+    this->is_sentence_sent = true;
   }
   else {
     if (tts.is_finished()){
       if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
-        is_sentence_sent  = false;
+        this->is_sentence_sent  = false;
         this->current_action_retries = 0;
         this->log_module.stop_logging_audio();
         return true;
       }
       else {
         ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying");
-        is_sentence_sent  = false;
+        this->is_sentence_sent  = false;
         this->current_action_retries ++;
         return false;
       }
