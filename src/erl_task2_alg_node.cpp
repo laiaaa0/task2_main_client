@@ -237,7 +237,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_RETURNIDLE:
-      if (this->ActionNavigateToPOI(this->config_.idle_poi)){
+      if (this->ActionNavigateToPOI(this->config_.home_poi)){
         this->current_state_ = T2_FINISH;
       }
       break;
@@ -266,6 +266,11 @@ void ErlTask2AlgNode::node_config_update(Config &config, uint32_t level)
 {
   this->alg_.lock();
   this->config_ = config;
+  //If either of these are set to true,
+  // their value will be stored in config_ variable.
+  //Set them to false again.
+  config.start_task = false;
+  config.ring_bell = false;
   this->alg_.unlock();
 }
 
