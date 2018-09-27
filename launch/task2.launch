@@ -87,7 +87,7 @@
       <remap from="~/nav_module/move_base_reconf"
                to="/move_base/PalLocalPlanner/set_parameters"/>
 
-      <rosparam file="$(find task2_client)/config/nav.yaml" command="load" ns="nav_module" />
+      <rosparam file="$(find task2_client)/config/task2_nav.yaml" command="load" ns="nav_module" />
 
 <!--LOGS-->
       <!-- Log Order -->
@@ -272,7 +272,7 @@
               <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="following/head_search/head" />
 
 
-
+	<!-- TODO : Remap following and guiding --> 
        <remap from="~/current_id"
           to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
           <remap from="~/actions_module/following_module/target_pose"

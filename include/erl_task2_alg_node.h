@@ -103,6 +103,10 @@ class ErlTask2AlgNode : public algorithm_base::IriBaseAlgorithm<ErlTask2Algorith
     int classification_retries;
     int current_action_retries;
 
+
+    bool is_poi_sent;
+    bool is_sentence_sent;
+
     //State machines
     TASK2_MAIN_STATES current_state_;
 

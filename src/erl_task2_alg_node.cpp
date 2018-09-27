@@ -16,6 +16,9 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     this->current_state_ =  T2_WAIT_SERVER_READY;
     this->current_visitor_ = Undefined;
     this->visitors_counter = 0;
+    this->is_poi_sent = false;
+    this->is_sentence_sent = false;
+    this->current_action_retries = 0;
 
 
     if (this->public_node_handle_.getParam("kimble_path", kimble_path_)){
@@ -86,22 +89,21 @@ bool ErlTask2AlgNode::ActionGreet(){
 
 
 bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
-  static bool is_poi_sent = false;
   //first execution : send the poi.
-  if (!is_poi_sent){
+  if (!this->is_poi_sent){
     nav_module.costmaps_clear();
     nav_module.go_to_poi(POI);
-    is_poi_sent = true;
+    this->is_poi_sent = true;
   }
   if (nav_module.is_finished()){
     if (nav_module.get_status()==NAV_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
-      is_poi_sent  = false;
+      this->is_poi_sent  = false;
       this->current_action_retries = 0;
       return true;
     }
     else {
-      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
-      is_poi_sent  = false;
+      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying : %d of %d", this->current_action_retries, this->config_.max_action_retries);
+      this->is_poi_sent  = false;
       this->current_action_retries ++;
       return false;
     }
@@ -110,23 +112,24 @@ bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
 }
 
 bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
-  static bool is_sentence_sent = false;
-  if (!is_sentence_sent){
+  if (!this->is_sentence_sent){
     this->log_module.start_logging_audio();
     tts.say(sentence);
-    is_sentence_sent = true;
+    this->is_sentence_sent = true;
   }
   else {
     if (tts.is_finished()){
       if (tts.get_status()==TTS_MODULE_SUCCESS or this->current_action_retries >= this->config_.max_action_retries){
-        is_sentence_sent  = false;
+        this->is_sentence_sent  = false;
         this->current_action_retries = 0;
         this->log_module.stop_logging_audio();
         return true;
       }
       else {
-        ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying");
-        is_sentence_sent  = false;
+        ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying %d of %d", 
+		this->current_action_retries,
+		this->config_.max_action_retries);
+        this->is_sentence_sent  = false;
         this->current_action_retries ++;
         return false;
       }
@@ -196,6 +199,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
 
     case T2_LOOKUP:
+	ROS_INFO ("[TASK2] Looking up");
         if (this->head.is_finished()){
             this->current_state_ = T2_RECOGNISE;
             recognition_module.StartRecognition();
@@ -206,6 +210,8 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
         break;
     case T2_RECOGNISE:
+
+	ROS_INFO ("[TASK2] Recognise");
         if (recognition_module.is_finished()){
 	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){
             	this->current_visitor_ = recognition_module.GetCurrentPerson();
@@ -220,6 +226,8 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_GREET:
+	
+	ROS_INFO ("[TASK2] Greet");
         if (this->ActionGreet()){
               this->current_state_ = T2_ACTION;
               task2_actions_module.StartActions(this->current_visitor_);
@@ -228,6 +236,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
 
     case T2_ACTION:
+      ROS_INFO ("[TASK2] Action");
       if (task2_actions_module.is_finished()) {
           this->current_state_ = T2_RETURNIDLE;
       }
@@ -237,6 +246,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_RETURNIDLE:
+	ROS_INFO ("[TASK2] Return to home");
       if (this->ActionNavigateToPOI(this->config_.home_poi)){
         this->current_state_ = T2_FINISH;
       }
