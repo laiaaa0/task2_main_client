@@ -18,6 +18,7 @@ ErlTask2AlgNode::ErlTask2AlgNode(void) :
     this->visitors_counter = 0;
     this->is_poi_sent = false;
     this->is_sentence_sent = false;
+    this->current_action_retries = 0;
 
 
     if (this->public_node_handle_.getParam("kimble_path", kimble_path_)){
@@ -101,7 +102,7 @@ bool ErlTask2AlgNode::ActionNavigateToPOI(std::string & POI){
       return true;
     }
     else {
-      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying");
+      ROS_INFO ("[TASK2] Nav module finished unsuccessfully. Retrying : %d of %d", this->current_action_retries, this->config_.max_action_retries);
       this->is_poi_sent  = false;
       this->current_action_retries ++;
       return false;
@@ -125,7 +126,9 @@ bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
         return true;
       }
       else {
-        ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying");
+        ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying %d of %d", 
+		this->current_action_retries,
+		this->config_.max_action_retries);
         this->is_sentence_sent  = false;
         this->current_action_retries ++;
         return false;
@@ -196,6 +199,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
 
     case T2_LOOKUP:
+	ROS_INFO ("[TASK2] Looking up");
         if (this->head.is_finished()){
             this->current_state_ = T2_RECOGNISE;
             recognition_module.StartRecognition();
@@ -206,6 +210,8 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
         break;
     case T2_RECOGNISE:
+
+	ROS_INFO ("[TASK2] Recognise");
         if (recognition_module.is_finished()){
 	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){
             	this->current_visitor_ = recognition_module.GetCurrentPerson();
@@ -220,6 +226,8 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_GREET:
+	
+	ROS_INFO ("[TASK2] Greet");
         if (this->ActionGreet()){
               this->current_state_ = T2_ACTION;
               task2_actions_module.StartActions(this->current_visitor_);
@@ -228,6 +236,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
 
     case T2_ACTION:
+      ROS_INFO ("[TASK2] Action");
       if (task2_actions_module.is_finished()) {
           this->current_state_ = T2_RETURNIDLE;
       }
@@ -237,6 +246,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_RETURNIDLE:
+	ROS_INFO ("[TASK2] Return to home");
       if (this->ActionNavigateToPOI(this->config_.home_poi)){
         this->current_state_ = T2_FINISH;
       }
