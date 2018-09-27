@@ -272,13 +272,17 @@
               <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="following/head_search/head" />
 
 
-	<!-- TODO : Remap following and guiding --> 
-       <remap from="~/current_id"
+<!-- TODO : finish Remap following and guiding
+       <remap from="~/actions_module/current_id_rear"
           to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
           <remap from="~/actions_module/following_module/target_pose"
           to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
 
-
+         <remap from="~/actions_module/current_id_front"
+            to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
+            <remap from="~/actions_module/following_module/target_pose"
+            to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
+ -->
   </node>
 
 
