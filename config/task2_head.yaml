@@ -1,4 +1,4 @@
-rate_hz: 10.0
+rate_hz: 50.0
 
 move_max_retries: 5
 move_feedback_watchdog_time_s: 20.0
