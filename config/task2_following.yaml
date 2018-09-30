@@ -1,0 +1,11 @@
+rate_hz: 30.0
+far_target_timeout: 4.0
+nav_timer: 1.0
+target_pose_watchdog_time_s: 3.0
+max_follow_dist: 3.0
+head_timer: 1.0
+max_retries_nav: 3
+max_retries_head: 3
+pose_timer: 0.5
+max_poses_to_store: 6
+min_dist_robot_target: 1.0

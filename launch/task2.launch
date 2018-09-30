@@ -1,17 +1,16 @@
 <launch>
   <!--DEFINE ARGUMENTS-->
-  <arg name = "base_path" default = "/root/nen_ws/code/erl_person_classifier/"/>
+  <arg name = "haarcascade_base_path" default = "/home/pal/iri-lab/iri_ws/src/nen/servers/shirt_color_detection/cfg/haarcascade_frontalface_alt.xml"/>
   <arg name = "rosbag_path" default = "/media/root/F703-CF86/tbm2_00/"/>
+  <arg name="action_topic" default="/tiago/echo_action_server/task2_recognise" />
+  <arg name="visualize" default="true" />
+  <arg name="kimble_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/kimble/kimble.jpeg" />
+  <arg name="postman_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/postman/postman.jpg" />
+  <arg name="camera_name" default="rear_xtion"/>
 
-  <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>
- 
-  <!--LAUNCH IMAGE VIEW-->
- <!-- <node pkg="image_view" type="image_view" name="image_view">
-    <remap from="image" to="/usb_cam/image_raw" />
-  </node>-->
-	
+
   <include file="$(find audio_capture)/launch/capture.launch"/>
-      
+
   <include file="$(find log_nodes)/launch/erl_log_tmb2.launch">
     <arg name="rosbag_path" value="$(arg rosbag_path)" />
   </include>
@@ -22,13 +21,16 @@
  	type="task2_client"
   	name="task2_client"
   	output="screen"
+    respawn="false"
   	ns="/tiago">
+    <param name="~kimble_path" type="string" value="$(arg kimble_path)" />
+    <param name="~postman_path" type="string" value="$(arg postman_path)" />
 
-    <!-- device (bell) remapping -->
 
+<!-- device (bell) remapping -->
        <remap from="~/devices_module/bell" to="/roah_rsbb/devices/bell"/>
 
-       <!-- Referee Module -->
+<!-- Referee Module -->
           <remap from="~/task2_referee/end_execute"
                    to="/roah_rsbb/end_execute"/>
           <remap from="~/task2_referee/end_prepare"
@@ -39,7 +41,8 @@
                    to="/roah_rsbb/benchmark"/>
           <param name="~/task2_referee/poi" value="home"/>
 
-          <rosparam file="$(find task2_client)/config/state_controller.yaml" command="load" ns="task2_referee" />
+          <rosparam file="$(find task2_client)/config/task2_state_controller.yaml" command="load" ns="task2_referee" />
+
 
        <!-- Nav SubModule for Referee Module -->
           <remap from="~/task2_referee/nav_module/move_base"
@@ -59,16 +62,14 @@
           <remap from="~/task2_referee/nav_module/move_base_reconf"
                    to="/move_base/PalLocalPlanner/set_parameters"/>
 
-          <rosparam file="$(find task2_client)/config/referee_nav.yaml" command="load" ns="task2_referee/nav_module" />
+          <rosparam file="$(find task2_client)/config/task2_referee_nav.yaml" command="load" ns="task2_referee/nav_module" />
+
+<!-- TTS MODULE -->
+          <remap from="~/tts_module/tts" to="/tts"/>
+          <rosparam file="$(find task2_client)/config/task2_tts.yaml" command="load" ns="tts_module" />
 
 
-  <!-- tts remappings -->
-  	  <remap from="~/tts_module/tts" to="/tts"/>
-
-          <rosparam file="$(find task2_client)/config/tts.yaml" command="load" ns="tts_module" />
-
-
-  <!-- navigation remappings -->
+<!-- NAVIGATION MODULE -->
       <remap from="~/nav_module/move_base"
                to="/move_base"/>
       <remap from="~/nav_module/move_poi"
@@ -86,9 +87,9 @@
       <remap from="~/nav_module/move_base_reconf"
                to="/move_base/PalLocalPlanner/set_parameters"/>
 
-      <rosparam file="$(find task2_client)/config/nav.yaml" command="load" ns="nav_module" />
+      <rosparam file="$(find task2_client)/config/task2_nav.yaml" command="load" ns="nav_module" />
 
-      <!--LOGS-->
+<!--LOGS-->
       <!-- Log Order -->
       <remap from="~/log_module/log_orders"
                to="/erl_log_base/erl_log_tmb2/log_orders"/>
@@ -112,37 +113,220 @@
       <remap from="~/log_module/command"
                to="/erl_log_base/erl_log_tmb2/command"/>
 
-      <remap from="~/classifier/classify_person"
-               to="/erl_person_classifier/classify_person"/>
-
-      <!-- image diff module -->
-      <remap from="~/image_diff_module/set_image"
-               to="/tiago/image_diff/set_image"/>
-      <remap from="~/image_diff_module/change"
-               to="/tiago/image_diff/change"/>
-
-      <rosparam file="$(find nen_modules)/config/image_diff_module_default.yaml" command="load" ns="image_diff_module" />
-
-      <!-- head module -->
+<!-- HEAD module -->
       <remap from="~/head_module/move_head"
                to="/head_controller/follow_joint_trajectory"/>
       <remap from="~/head_module/point_head"
                to="/head_controller/point_head_action"/>
+      <rosparam file="$(find task2_client)/config/task2_head.yaml" command="load" ns="head_module" />
 
-      <rosparam file="$(find task2_client)/config/head.yaml" command="load" ns="head_module" />
+<!-- RECOGNITION module-->
+      <remap from="~/recognition_module/face_recognition/get_person" to="/tiago/face_recognition_server/get_person" />
+      <remap from="~/recognition_module/face_recognition/store_person" to="/tiago/face_recognition_server/store_person_path" />
+      <remap from="~/recognition_module/tts_module/tts" to="/tts" />
+      <remap from="~/recognition_module/echo_module/listen" to="$(arg action_topic)" />
+      <remap from="~/recognition_module/shirt_color_detection_module/shirt_color" to="/tiago/shirt_color_detection/shirt_color" />
+      <remap from="~/recognition_module/log_module/en_dis_logs"
+                   to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
+
+      <rosparam file="$(find task2_client)/config/task2_echo.yaml" command="load" ns="recognition_module/echo_module" />
+      <rosparam file="$(find task2_client)/config/task2_tts.yaml" command="load" ns="recognition_module/tts_module" />
+
+<!-- ACTIONS MODULE-->
+      <remap from="~/actions_module/tts_module/tts" to="/tts" />
+      <remap from="~/actions_module/play_motion_module/play_motion" to="/play_motion" />
+      <remap from="~/actions_module/echo_module/listen" to="$(arg action_topic)" />
+      <remap from="~/actions_module/log_module/en_dis_logs"
+                   to="/erl_log_base/erl_log_tmb2/en_dis_logs"/>
+
+      <rosparam file="$(find task2_client)/config/task2_tts.yaml" command="load" ns="actions_module/tts_module" />
+      <rosparam file="$(find task2_client)/config/task2_play_motion.yaml" command="load" ns="actions_module/play_motion_module" />
+      <rosparam file="$(find task2_client)/config/task2_echo.yaml" command="load" ns="actions_module/echo_module" />
+
+      <!--navigation remappings-->
+           <remap from="~/actions_module/nav_module/move_base"
+                    to="/move_base"/>
+           <remap from="~/actions_module/nav_module/move_poi"
+                    to="/poi_navigation_server/go_to_poi"/>
+           <remap from="~/actions_module/nav_module/move_waypoint"
+                    to="/pal_waypoint/navigate"/>
+           <remap from="~/actions_module/nav_module/odom"
+                    to="/mobile_base_controller/odom"/>
+           <remap from="~/actions_module/nav_module/clear_costmaps"
+                    to="/move_base/clear_costmaps"/>
+           <remap from="~/actions_module/nav_module/change_map"
+                    to="/pal_map_manager/change_map"/>
+           <remap from="~/actions_module/nav_module/set_op_mode"
+                    to="/pal_navigation_sm"/>
+           <remap from="~/actions_module/nav_module/move_base_reconf"
+                    to="/move_base/PalLocalPlanner/set_parameters"/>
+
+            <rosparam file="$(find task2_client)/config/task2_nav.yaml" command="load" ns="actions_module/nav_module" />
+
+      <!--Gripper module-->
+      <!-- OLD GRIPPER
+          <remap from="~/actions_module/gripper_module/gripper_trajectory"
+                 to="/gripper_controller/follow_joint_trajectory"/>
+          <remap from="~/actions_module/gripper_module/grasp"
+                 to="/gripper_controller/grasp"/>
+          <rosparam file="$(find task2_client)/config/task2_gripper.yaml" command="load" ns="action_module/gripper_module" />
+-->
+    <remap from="~/actions_module/gripper_module/open"
+           to="/tiago/nen_gripper/open"/>
+    <remap from="~/actions_module/gripper_module/close"
+           to="/tiago/nen_gripper/close"/>
+    <remap from="~/actions_module/gripper_module/gripper_reconf"
+           to="/tiago/nen_gripper/set_parameters"/>
+
+    <rosparam file="$(find task2_client)/config/task2_gripper.yaml" command="load" ns="action_module/gripper_module" />
+      <!--head module-->
+          <remap from="~/actions_module/head_module/point_head"
+                    to="/head_controller/point_head_action" />
+          <remap from="~/actions_module/head_module/move_head"
+                    to="/head_controller/follow_joint_trajectory" />
+
+    <!-- image diff module -->
+      <remap from="~/actions_module/image_diff_module/set_image"
+                    to="/tiago/image_diff/set_image" />
+      <remap from="~/actions_module/image_diff_module/change"
+                    to="/tiago/image_diff/change" />
+
+    <!--Move platform -->
+      <remap from="/mobile_base_controller/cmd_vel"
+                    to="/key_vel"/>
+    <rosparam file="$(find task2_client)/config/task2_move_platform.yaml" command="load" ns="actions_module/move_platform" />
+
+<!--GUIDING - in actions modeul -->
+        <!-- tts_module -->
+        <remap from="~/actions_module/guiding/tts/tts"
+                to="/tts"/>
+        <rosparam file="$(find guiding_client)/config/guiding_tts.yaml" command="load" ns="actions_module/guiding/tts" />
+
+
+       <!-- nav -->
+       <remap from="~/actions_module/guiding/nav/move_base/"
+                to="/move_base"/>
+       <remap from="~/actions_module/guiding/nav/move_poi"
+                to="/poi_navigation_server/go_to_poi"/>
+       <remap from="~/actions_module/guiding/nav/move_waypoint"
+                to="/pal_waypoint/navigate"/>
+       <remap from="~/actions_module/guiding/nav/odom"
+                to="/mobile_base_controller/odom"/>
+       <remap from="~/actions_module/guiding/nav/clear_costmaps"
+                to="/move_base/clear_costmaps"/>
+       <remap from="~/actions_module/guiding/nav/change_map"
+                to="/pal_map_manager/change_map"/>
+       <remap from="~/actions_module/guiding/nav/set_op_mode"
+                to="/pal_navigation_sm"/>
+       <remap from="~/actions_module/guiding/nav/move_base_reconf"
+                to="/move_base/PalLocalPlanner/set_parameters"/>
+
+
+       <remap from="~/actions_module/guiding/nav/palLocalPlanner_reconf"
+                to="/move_base/PalLocalPlanner/set_parameters"/>
+       <rosparam file="$(find guiding_client)/config/guiding_nav.yaml" command="load" ns="actions_module/guiding/nav" />
+       <!-- head_module -->
+      <remap from="~/actions_module/guiding/head/move_head"
+               to="/head_controller/follow_joint_trajectory"/>
+      <remap from="~/actions_module/guiding/head/point_head"
+               to="/head_controller/point_head_action"/>
+      <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="actions_module/guiding/head" />
+
+       <!-- head_search_module -->
+       <remap from="~/actions_module/guiding/head_search/head/move_head"
+                to="/head_controller/follow_joint_trajectory"/>
+       <remap from="~/actions_module/guiding/head_search/head/point_head"
+                to="/head_controller/point_head_action"/>
+       <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="actions_module/guiding/head_search/head" />
+       <rosparam file="$(find task2_client)/config/task2_head_search.yaml" command="load" ns="actions_module/guiding/head_search"/>
+
+       <!-- spencer remappings for guiding -->
+       <!-- TODO :update namespace ns/spencer/...-->
+       <remap from="~/actions_module/current_id_rear"
+          to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
+          <remap from="~/actions_module/guiding/target_pose"
+          to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
+
+       <!--following - in actions modeul -->
+               <!-- tts_module -->
+               <remap from="~/actions_module/following_module/tts/tts"
+                       to="/tts"/>
+               <rosparam file="$(find guiding_client)/config/guiding_tts.yaml" command="load" ns="actions_module/following/tts" />
+
+               <!-- head_module -->
+              <remap from="~/actions_module/following_module/head/move_head"
+                       to="/head_controller/follow_joint_trajectory"/>
+              <remap from="~/actions_module/following_module/head/point_head"
+                       to="/head_controller/point_head_action"/>
+              <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="actions_module/following/head" />
+
+              <!-- nav -->
+              <remap from="~/actions_module/following_module/nav/move_base/"
+                       to="/move_base"/>
+              <remap from="~/actions_module/following_module/nav/move_poi"
+                       to="/poi_navigation_server/go_to_poi"/>
+              <remap from="~/actions_module/following_module/nav/move_waypoint"
+                       to="/pal_waypoint/navigate"/>
+              <remap from="~/actions_module/following_module/nav/odom"
+                       to="/mobile_base_controller/odom"/>
+              <remap from="~/actions_module/following_module/nav/clear_costmaps"
+                       to="/move_base/clear_costmaps"/>
+              <remap from="~/actions_module/following_module/nav/change_map"
+                       to="/pal_map_manager/change_map"/>
+              <remap from="~/actions_module/following_module/nav/set_op_mode"
+                       to="/pal_navigation_sm"/>
+              <remap from="~/actions_module/following_module/nav/move_base_reconf"
+                       to="/move_base/PalLocalPlanner/set_parameters"/>
+
+
+              <remap from="~/actions_module/following_module/nav/palLocalPlanner_reconf"
+                       to="/move_base/PalLocalPlanner/set_parameters"/>
+              <rosparam file="$(find guiding_client)/config/guiding_nav.yaml" command="load" ns="actions_module/following/nav" />
+
+              <!-- head_search_module -->
+              <remap from="~/actions_module/following_module/head_search/head/move_head"
+                       to="/head_controller/follow_joint_trajectory"/>
+              <remap from="~/actions_module/following_module/head_search/head/point_head"
+                       to="/head_controller/point_head_action"/>
+              <rosparam file="$(find guiding_client)/config/guiding_head.yaml" command="load" ns="actions_module/following/head_search/head" />
+              <rosparam file="$(find task2_client)/config/task2_head_search.yaml" command="load" ns="actions_module/following/head_search"/>
+
+
+<!-- TODO : change spencer namespace -->
+            <!--spencer-->
+            <remap from="~/actions_module/current_id_front"
+            to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
+            <remap from="~/actions_module/following_module/target_pose"
+            to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
 
   </node>
 
-  <node pkg="erl_person_classifier" type="erl_person_classifier" name="erl_person_classifier" output="screen">
-<!--     <remap from ="erl_person_classifier/front_door_camera" to="/roah_ipcam/image"/> -->
-      <remap from ="erl_person_classifier/front_door_camera" to="/usb_cam/image_raw"/>
-      <param name="cascade_upper_file" type="string" value="/root/nen_ws/code/erl_person_classifier/xml_files/haarcascade_mcs_upperbody.xml" />
-      <param name="cascade_face_file" type="string" value="/root/nen_ws/code/erl_person_classifier/xml_files/haarcascade_frontalface_alt.xml" />
-      <param name="known_faces_path" type="string" value="/root/nen_ws/code/erl_person_classifier/person_faces/known_people/" />
-      <param name="debug_mode" type="bool" value="False" />
-  </node>
+
+  <include file="$(find person_face_recognition)/launch/person_face_recognition.launch"/>
+
+
+  <include file="$(find shirt_color_detection)/launch/shirt_color_detection.launch">
+          <arg name="visualize"  value="false" />
+          <arg name="base_path" value="$(arg haarcascade_base_path)" />
+  </include>
 
    <!-- launch dynamic reconfigure -->
    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
+   <!-- launch gripper -->
+   <node name="nen_gripper"
+      pkg="nen_gripper"
+      type="nen_gripper"
+      output="screen"
+      ns="/tiago">
+      <param name="device_serial" value="A400gavm"/>
+      <param name="device_baudrate" value="1000000"/>
+      <param name="device_id" value="1"/>
+    </node>
+
+   <include file="$(find spencer_people_tracking_launch)/launch/tracking_single_rgbd_sensor.launch">
+     <arg name="camera_name" value="$(arg camera_name)" />
+     <arg name="dummy_transforms" value="false" />
+     <arg name="visualization"  value="false" />
+   </include>
 
 </launch>
