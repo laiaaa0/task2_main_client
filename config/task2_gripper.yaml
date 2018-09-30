@@ -1,12 +1,16 @@
-rate_hz: 1.0
+rate_hz: 10.0
 
-action_max_retries: 1
-feedback_watchdog_time_s: 10.0
-enable_watchdog: True
-timeout_s: 1.0
-enable_timeout: True
-close_dist: 0.01
-open_dist: 0.035
-default_duration: 1.0
-enabled: True
+open_max_retries: 1
+open_feedback_watchdog_time_s: 10
+open_enable_watchdog: true
+open_timeout_s: 1
+open_enable_timeout: True
+open_enabled: True
+
+close_max_retries: 1
+close_feedback_watchdog_time_s: 10
+close_enable_watchdog: True
+close_timeout_s: 1
+close_enable_timeout: True
+close_enabled: True
 
