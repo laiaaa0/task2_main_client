@@ -211,7 +211,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
     case T2_RECOGNISE:
 
-	ROS_INFO ("[TASK2] Recognise");
+	ROS_DEBUG ("[TASK2] Recognise");
         if (recognition_module.is_finished()){
 	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){
             	this->current_visitor_ = recognition_module.GetCurrentPerson();
@@ -236,7 +236,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
         break;
 
     case T2_ACTION:
-      ROS_INFO ("[TASK2] Action");
+      ROS_DEBUG ("[TASK2] Action");
       if (task2_actions_module.is_finished()) {
           this->current_state_ = T2_RETURNIDLE;
       }
