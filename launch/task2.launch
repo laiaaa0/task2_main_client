@@ -3,10 +3,11 @@
   <arg name = "haarcascade_base_path" default = "/home/pal/iri-lab/iri_ws/src/nen/servers/shirt_color_detection/cfg/haarcascade_frontalface_alt.xml"/>
   <!--<arg name = "rosbag_path" default = "/media/root/F703-CF86/tbm2_00/"/>-->
   <arg name = "rosbag_path" default = "/home/pal/rosbags_tbm2/"/>
+  <arg name="launch_gripper" default="true" />
   <arg name="action_topic" default="/tiago/echo_action_server/what_do_you_want" />
   <arg name="visualize" default="true" />
-  <arg name="kimble_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/kimble/kimble.jpeg" />
-  <arg name="postman_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/postman/postman.jpg" />
+  <arg name="kimble_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/kimble/kimble.png" />
+  <arg name="postman_path" default="/home/pal/iri-lab/labrobotica/algorithms/erl_person_classifier/person_faces/postman/postman.png" />
   <arg name="camera_name" default="rear_xtion"/>
 
 
@@ -315,15 +316,18 @@
    <!-- launch dynamic reconfigure -->
    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false" output="screen"/>
    <!-- launch gripper -->
-   <node name="nen_gripper"
-      pkg="nen_gripper"
-      type="nen_gripper"
-      output="screen"
-      ns="/tiago">
-      <param name="device_serial" value="A400gavm"/>
-      <param name="device_baudrate" value="1000000"/>
-      <param name="device_id" value="1"/>
-    </node>
+   <group if="$(arg launch_gripper)">
+       <node name="nen_gripper"
+          pkg="nen_gripper"
+          type="nen_gripper"
+          output="screen"
+          ns="/tiago" >
+          <param name="device_serial" value="A400gavm"/>
+          <param name="device_baudrate" value="1000000"/>
+          <param name="device_id" value="1"/>
+        </node>
+
+   </group>
 
    <include file="$(find spencer_people_tracking_launch)/launch/tracking_single_rgbd_sensor.launch">
      <arg name="camera_name" value="$(arg camera_name)" />
