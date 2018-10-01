@@ -126,7 +126,7 @@ bool ErlTask2AlgNode::ActionSaySentence(const std::string & sentence){
         return true;
       }
       else {
-        ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying %d of %d", 
+        ROS_INFO ("[TASK2] TTS module finished unsuccessfully. Retrying %d of %d",
 		this->current_action_retries,
 		this->config_.max_action_retries);
         this->is_sentence_sent  = false;
@@ -201,8 +201,10 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_LOOKUP:
 	ROS_INFO ("[TASK2] Looking up");
         if (this->head.is_finished()){
-            this->current_state_ = T2_RECOGNISE;
-            recognition_module.StartRecognition();
+            if (this->head.get_status == HEAD_MODULE_SUCCESS){
+                this->current_state_ = T2_RECOGNISE;
+                recognition_module.StartRecognition();
+            }
         }
         else {
             this->current_state_ = T2_LOOKUP;
@@ -213,12 +215,17 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
 	ROS_DEBUG ("[TASK2] Recognise");
         if (recognition_module.is_finished()){
-	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){
-            	this->current_visitor_ = recognition_module.GetCurrentPerson();
-            	this->log_module.log_visitor(this->PersonToString(this->current_visitor_));
-            	this->current_state_ = T2_GREET;
+    	    if (recognition_module.get_status() == T2_RECOGNITION_SUCCESS){
+                	this->current_visitor_ = recognition_module.GetCurrentPerson();
+                	this->log_module.log_visitor(this->PersonToString(this->current_visitor_));
+                	this->current_state_ = T2_GREET;
 
-	    }
+    	    }
+            else {
+                this->tts.say("I could not recognise you. Goodbye");
+                this->current_state_ = T2_WAIT_BELL;
+                this->visitors_counter++;
+            }
         }
         else {
             this->current_state_ = T2_RECOGNISE;
@@ -226,7 +233,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
       break;
 
     case T2_GREET:
-	
+
 	ROS_INFO ("[TASK2] Greet");
         if (this->ActionGreet()){
               this->current_state_ = T2_ACTION;
