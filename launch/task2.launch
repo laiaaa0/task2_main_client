@@ -199,6 +199,8 @@
     <rosparam file="$(find task2_client)/config/task2_move_platform.yaml" command="load" ns="actions_module/move_platform" />
 
 <!--GUIDING - in actions modeul -->
+
+        <rosparam file="$(find task2_client)/config/task2_guiding.yaml" command="load" ns="actions_module/guiding" />
         <!-- tts_module -->
         <remap from="~/actions_module/guiding/tts/tts"
                 to="/tts"/>
@@ -239,8 +241,8 @@
                 to="/head_controller/follow_joint_trajectory"/>
        <remap from="~/actions_module/guiding/head_search/head/point_head"
                 to="/head_controller/point_head_action"/>
-       <rosparam file="$(find task2_client)/config/task2_head.yaml" command="load" ns="actions_module/guiding/head_search/head" />
-       <rosparam file="$(find task2_client)/config/task2_head_search.yaml" command="load" ns="actions_module/guiding/head_search"/>
+       <rosparam file="$(find task2_client)/config/task2_head_for_headsearch.yaml" command="load" ns="actions_module/guiding/head_search/head" />
+       <rosparam file="$(find task2_client)/config/task2_head_search_back.yaml" command="load" ns="actions_module/guiding/head_search"/>
 
        <!-- spencer remappings for guiding -->
        <!-- TODO :update namespace ns/spencer/...-->
@@ -250,6 +252,7 @@
           to="/spencer/perception/tracked_persons_confirmed_by_upper_body"/>
 
        <!--following - in actions modeul -->
+        	<rosparam file="$(find task2_client)/config/task2_following.yaml" command="load" ns="actions_module/following" />
                <!-- tts_module -->
                <remap from="~/actions_module/following_module/tts/tts"
                        to="/tts"/>
@@ -290,10 +293,11 @@
                        to="/head_controller/follow_joint_trajectory"/>
               <remap from="~/actions_module/following_module/head_search/head/point_head"
                        to="/head_controller/point_head_action"/>
-              <rosparam file="$(find task2_client)/config/task2_head.yaml" command="load" ns="actions_module/following/head_search/head" />
-              <rosparam file="$(find task2_client)/config/task2_head_search.yaml" command="load" ns="actions_module/following/head_search"/>
+              <rosparam file="$(find task2_client)/config/task2_head_for_headsearch.yaml" command="load" ns="actions_module/following/head_search/head" />
+              <rosparam file="$(find task2_client)/config/task2_head_search_front.yaml" command="load" ns="actions_module/following/head_search"/>
 
-
+              <remap from="~/actions_module/following_module/global_costmap" to="/move_base/global_costmap/costmap" />
+              <remap from="~/actions_module/following_module/global_costmap_update" to="/move_base/global_costmap/costmap_updates" />
        <!-- spencer remappings for following -->
 	<!-- TODO : change spencer namespace -->
             <!--spencer-->
@@ -322,9 +326,9 @@
           type="nen_gripper"
           output="screen"
           ns="/tiago" >
-          <param name="device_serial" value="A400gavm"/>
+          <param name="device_serial" value="AI027ZFC"/>
           <param name="device_baudrate" value="1000000"/>
-          <param name="device_id" value="1"/>
+          <param name="device_id" value="15"/>
         </node>
 
    </group>
@@ -334,5 +338,7 @@
      <arg name="dummy_transforms" value="false" />
      <arg name="visualization"  value="false" />
    </include>
+
+     <include file="$(find echo_action_server)/launch/echo_action_server.launch"/>
 
 </launch>

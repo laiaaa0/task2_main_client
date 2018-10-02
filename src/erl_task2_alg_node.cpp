@@ -75,7 +75,7 @@ bool ErlTask2AlgNode::ActionGreet(){
       sentence = "Hello, I am coming to get the post mail";
       break;
     case Kimble:
-      sentence = "Hello, Doctor Kimble, thanks for coming";
+      sentence = "Hello, Doctor Kimble";
       break;
     case Plumber:
       sentence = "Hello plumber";
@@ -201,7 +201,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_LOOKUP:
 	ROS_INFO ("[TASK2] Looking up");
         if (this->head.is_finished()){
-            if (this->head.get_status == HEAD_MODULE_SUCCESS){
+            if (this->head.get_status() == HEAD_MODULE_SUCCESS){
                 this->current_state_ = T2_RECOGNISE;
                 recognition_module.StartRecognition();
             }

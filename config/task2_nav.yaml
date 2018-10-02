@@ -12,7 +12,7 @@ mb_cancel_prev: True
 poi_max_retries: 5
 poi_feedback_watchdog_time_s: 50.0
 poi_enable_watchdog: False
-poi_timeout_s: 10.0
+poi_timeout_s: 100.0
 poi_enable_timeout: False
 poi_enabled: True
 
