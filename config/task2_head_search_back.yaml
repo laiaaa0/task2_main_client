@@ -3,5 +3,5 @@ initial_pan: 0.0
 min_pan: -1.57
 max_pan: 1.57
 tilt: -0.1
-ang_vel_to_reah_min_pan: 0.53
+ang_vel_to_reach_min_pan: 0.53
 ang_vel_between_min_and_max_pan: 0.35

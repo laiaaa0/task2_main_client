@@ -7,9 +7,9 @@
     <include file="$(find nen_bringup)/launch/nen_gazebo.launch"/>
 
     <include file="$(find iri_objects_description)/launch/spawn_pedestrian.launch">
-       <arg name="x" value="-4.0" />
+       <arg name="x" value="4.0" />
        <arg name="y" value="0" />
      </include>
 
-     <include file="$(find echo_action_server)/launch/echo_action_server.launch"/>
+
 </launch>
