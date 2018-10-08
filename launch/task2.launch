@@ -171,7 +171,7 @@
                  to="/gripper_controller/follow_joint_trajectory"/>
           <remap from="~/actions_module/gripper_module/grasp"
                  to="/gripper_controller/grasp"/>
-          <rosparam file="$(find task2_client)/config/task2_gripper.yaml" command="load" ns="action_module/gripper_module" />
+          <rosparam file="$(find task2_client)/config/task2_gripper.yaml" command="load" ns="actions_module/gripper_module" />
 -->
     <remap from="~/actions_module/gripper_module/open"
            to="/tiago/nen_gripper/open"/>
@@ -180,7 +180,7 @@
     <remap from="~/actions_module/gripper_module/gripper_reconf"
            to="/tiago/nen_gripper/set_parameters"/>
 
-    <rosparam file="$(find task2_client)/config/task2_gripper.yaml" command="load" ns="action_module/gripper_module" />
+    <rosparam file="$(find task2_client)/config/task2_gripper.yaml" command="load" ns="actions_module/gripper_module" />
       <!--head module-->
           <remap from="~/actions_module/head_module/point_head"
                     to="/head_controller/point_head_action" />

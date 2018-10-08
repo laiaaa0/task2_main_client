@@ -2,7 +2,7 @@ rate_hz: 10.0
 
 open_max_retries: 1
 open_feedback_watchdog_time_s: 10
-open_enable_watchdog: true
+open_enable_watchdog: True
 open_timeout_s: 30
 open_enable_timeout: True
 open_enabled: True

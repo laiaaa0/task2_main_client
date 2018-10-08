@@ -201,7 +201,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
     case T2_LOOKUP:
 	ROS_INFO ("[TASK2] Looking up");
         if (this->head.is_finished()){
-            if (this->head.get_status() == HEAD_MODULE_SUCCESS){
+            if (this->head.get_status() == HEAD_MODULE_SUCCESS or this->head.get_status() == HEAD_MODULE_TIMEOUT){
                 this->current_state_ = T2_RECOGNISE;
                 recognition_module.StartRecognition();
             }
@@ -244,7 +244,7 @@ void ErlTask2AlgNode::mainNodeThread(void)
 
     case T2_ACTION:
       ROS_DEBUG ("[TASK2] Action");
-      if (task2_actions_module.is_finished()) {
+      if (task2_actions_module.is_finished()) { //TODO check success, no??
           this->current_state_ = T2_RETURNIDLE;
       }
       else {
